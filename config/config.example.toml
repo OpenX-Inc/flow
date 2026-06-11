@@ -1,0 +1,40 @@
+# Flow Configuration
+# Copy this file to config/config.toml and fill in your values.
+
+[llm]
+# Supported: openai, deepseek
+provider = "openai"
+api_key = ""
+base_url = ""  # Leave empty for default OpenAI endpoint
+model = "gpt-4o-mini"
+
+[gpu_backend]
+# Supported: modal, runpod, self-hosted
+provider = "modal"
+url = ""  # URL of your GPU backend inference server
+api_key = ""
+resolution = "480p"  # 480p or 720p
+clip_duration = 5  # seconds per clip
+
+[tts]
+# Supported: edge (free), elevenlabs
+provider = "edge"
+voice = "en-US-ChristopherNeural"
+api_key = ""  # Only needed for elevenlabs
+
+[publish]
+enabled = false
+platforms = ["tiktok", "youtube", "instagram"]
+tiktok_access_token = ""
+youtube_client_id = ""
+youtube_client_secret = ""
+
+[scheduler]
+enabled = false
+cron = "0 2 * * *"  # Daily at 2am UTC
+topics_file = ""  # Path to file with one topic per line (optional)
+auto_generate_topics = true
+
+# General settings
+output_dir = "storage/outputs"
+aspect_ratio = "9:16"  # 9:16 for shorts, 16:9 for long-form
