@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Config (user-specific)
+config/config.toml
+
+# Storage
+storage/
+*.mp4
+*.mp3
+*.wav
+*.srt
+*.ass
+
+# Model weights
+*.safetensors
+*.bin
+*.ckpt
+*.pt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
