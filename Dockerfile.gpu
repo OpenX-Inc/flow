@@ -1,0 +1,34 @@
+# GPU Backend Dockerfile — for RunPod or self-hosted deployment
+# Build: docker build -f Dockerfile.gpu -t flow-gpu .
+# Run: docker run --gpus all -p 8000:8000 flow-gpu
+
+FROM nvidia/cuda:12.6.0-runtime-ubuntu24.04
+
+WORKDIR /app
+
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 python3-pip ffmpeg git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python deps
+COPY pyproject.toml .
+RUN pip install --no-cache-dir --break-system-packages \
+    torch>=2.6.0 \
+    diffusers>=0.33.0 \
+    transformers>=4.50.0 \
+    accelerate>=1.5.0 \
+    safetensors \
+    fastapi[standard] \
+    uvicorn \
+    pillow \
+    numpy
+
+COPY src/gpu_backend/ src/gpu_backend/
+
+# Download model weights on build (optional, speeds up cold start)
+# RUN python3 -c "from diffusers import WanPipeline; WanPipeline.from_pretrained('Wan-AI/Wan2.2-T2V-A14B-Diffusers')"
+
+EXPOSE 8000
+
+CMD ["uvicorn", "src.gpu_backend.server:app", "--host", "0.0.0.0", "--port", "8000"]
