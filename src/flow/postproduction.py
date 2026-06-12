@@ -50,9 +50,20 @@ class PostProduction:
 
         if self.config.tts.provider == "edge":
             asyncio.run(self._edge_tts(text, output_path))
+        elif self.config.tts.provider == "miso":
+            from flow.tts_miso import generate_speech
+
+            wav_path = self.work_dir / "narration.wav"
+            generate_speech(
+                text=text,
+                output_path=wav_path,
+                config=self.config.tts,
+                gpu_backend_url=self.config.gpu_backend.url,
+            )
+            output_path = wav_path
         else:
             raise NotImplementedError(
-                f"TTS provider '{self.config.tts.provider}' not yet supported"
+                f"TTS provider '{self.config.tts.provider}' not supported"
             )
 
         return output_path

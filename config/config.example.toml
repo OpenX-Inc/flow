@@ -17,10 +17,16 @@ resolution = "480p"  # 480p or 720p
 clip_duration = 5  # seconds per clip
 
 [tts]
-# Supported: edge (free), elevenlabs
+# Supported: edge (free), miso (natural, needs GPU), elevenlabs
 provider = "edge"
 voice = "en-US-ChristopherNeural"
 api_key = ""  # Only needed for elevenlabs
+
+# MisoTTS settings (only when provider = "miso")
+miso_model = "MisoLabs/MisoTTS"
+miso_precision = "int8"  # bf16, int8, int4 (int8 = 16GB VRAM)
+voice_sample = ""  # Path to reference audio for voice cloning (e.g., "config/voices/narrator.wav")
+voice_transcript = ""  # Transcript of the voice sample
 
 [publish]
 enabled = false

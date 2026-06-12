@@ -25,9 +25,13 @@ class GPUBackendConfig(BaseModel):
 
 
 class TTSConfig(BaseModel):
-    provider: str = "edge"  # edge, elevenlabs
+    provider: str = "edge"  # edge, miso, elevenlabs
     voice: str = "en-US-ChristopherNeural"
     api_key: str = ""
+    miso_model: str = "MisoLabs/MisoTTS"
+    miso_precision: str = "int8"  # bf16, int8, int4
+    voice_sample: str = ""  # path to reference audio for cloning
+    voice_transcript: str = ""  # transcript of the voice sample
 
 
 class PublishConfig(BaseModel):

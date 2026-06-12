@@ -149,6 +149,57 @@ def _save_and_respond(output) -> GenerationResponse:
     )
 
 
+class TTSRequest(BaseModel):
+    text: str
+    model: str = "MisoLabs/MisoTTS"
+    precision: str = "int8"
+    voice_sample: str = ""  # base64 audio for cloning
+    voice_transcript: str = ""
+
+
+class TTSResponse(BaseModel):
+    audio_b64: str
+
+
+@app.post("/tts/generate", response_model=TTSResponse)
+async def generate_tts(req: TTSRequest):
+    """Generate speech using MisoTTS 8B."""
+    import base64
+    import tempfile
+
+    import torchaudio
+    from generator import Segment, load_miso_8b
+
+    device = "cuda"
+    generator = load_miso_8b(device=device, model_path_or_repo_id=req.model)
+
+    context: list = []
+    if req.voice_sample:
+        audio_bytes = base64.b64decode(req.voice_sample)
+        tmp = Path(tempfile.mktemp(suffix=".wav"))
+        tmp.write_bytes(audio_bytes)
+        ref_audio, sr = torchaudio.load(str(tmp))
+        if sr != generator.sample_rate:
+            ref_audio = torchaudio.functional.resample(
+                ref_audio, sr, generator.sample_rate
+            )
+        context = [Segment(text=req.voice_transcript, audio=ref_audio.squeeze())]
+        tmp.unlink()
+
+    audio = generator.generate(
+        text=req.text,
+        context=context,
+        max_audio_length_ms=len(req.text) * 100,
+    )
+
+    out_path = Path(tempfile.mktemp(suffix=".wav"))
+    torchaudio.save(str(out_path), audio.unsqueeze(0).cpu(), generator.sample_rate)
+    audio_b64 = base64.b64encode(out_path.read_bytes()).decode()
+    out_path.unlink()
+
+    return TTSResponse(audio_b64=audio_b64)
+
+
 def _resolution_to_dims(resolution: str) -> tuple[int, int]:
     resolutions = {
         "480p": (480, 832),
