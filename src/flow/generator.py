@@ -11,8 +11,11 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from flow.config import Config
 from flow.schemas import GeneratedClip, ShotList
+from flow.validation import detect_black_frames, validate_clip
 
 console = Console()
+
+MAX_RETRIES = 3
 
 
 class Generator:
@@ -41,7 +44,7 @@ class Generator:
                     description=f"Scene {scene.id}/{len(shot_list.scenes)}",
                 )
 
-                clip = self._generate_single(
+                clip = self._generate_with_retry(
                     scene_id=scene.id,
                     prompt=scene.visual_prompt,
                     camera=scene.camera,
@@ -57,6 +60,34 @@ class Generator:
                 progress.advance(task)
 
         return clips
+
+    def _generate_with_retry(
+        self,
+        scene_id: int,
+        prompt: str,
+        camera: str,
+        characters: list,
+        first_frame_path: str | None = None,
+    ) -> GeneratedClip:
+        """Generate a clip with retry on validation failure."""
+        for attempt in range(MAX_RETRIES):
+            clip = self._generate_single(
+                scene_id=scene_id,
+                prompt=prompt,
+                camera=camera,
+                characters=characters,
+                first_frame_path=first_frame_path,
+            )
+            if validate_clip(clip.path) and not detect_black_frames(
+                clip.path
+            ):
+                return clip
+            console.print(
+                f"    ⚠ Scene {scene_id} failed validation "
+                f"(attempt {attempt + 1}/{MAX_RETRIES})"
+            )
+        # Return last attempt even if validation failed
+        return clip
 
     def _generate_single(
         self,
