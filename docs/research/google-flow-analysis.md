@@ -32,7 +32,7 @@ Flow is an **orchestration layer** on top of a video generation model. The key i
 | **Temporal coherence** | Last-frame → next-scene conditioning | Wan 2.2 FLF2V (First-Last Frame to Video) |
 | **Camera control** | Per-shot camera angle/motion | Prompt engineering + Wan camera tokens |
 | **Multi-turn editing** | Iterative refinement per scene | Regenerate individual scenes in pipeline |
-| **Audio** | Native Veo 3.1 audio generation | Separate TTS + music pipeline |
+| **Audio** | Native Veo 3.1 audio generation | MisoTTS 8B (natural speech + voice cloning) |
 | **4K output** | Veo native | Upscale post-processing (Real-ESRGAN) |
 
 ### What Makes Flow Special (and Replicable)
@@ -55,6 +55,7 @@ Flow is an **orchestration layer** on top of a video generation model. The key i
 4. **Full automation**: No human in the loop — topic to published video
 5. **Ownership**: Full control over output, no platform dependency
 6. **Customization**: Any duration, any style, any posting schedule
+7. **Voice cloning**: MisoTTS 8B for natural speech in any voice
 
 ## Flow Pricing (for comparison)
 

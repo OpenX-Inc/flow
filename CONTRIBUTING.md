@@ -1,6 +1,6 @@
-# Contributing to Creator
+# Contributing to Flow
 
-Thanks for your interest in contributing! This project is building an open-source autonomous video generation pipeline — a self-hosted alternative to Google Flow.
+Thanks for your interest in contributing! Flow is an open-source autonomous video generation pipeline — a self-hosted alternative to Google Flow.
 
 ## How to Contribute
 
@@ -14,21 +14,27 @@ Thanks for your interest in contributing! This project is building an open-sourc
 
 ```bash
 # Clone
-git clone https://github.com/Toons-Official/creator.git
-cd creator
+git clone https://github.com/OpenX-Inc/flow.git
+cd flow
 
 # Install dependencies (requires uv)
-uv sync
+uv sync --extra dev
 
 # Copy config
 cp config/config.example.toml config/config.toml
+
+# Run tests
+uv run pytest tests/ -v
+
+# Lint
+uv run ruff check src/ tests/
 ```
 
 ### Project Structure
 
 ```
-creator/
-├── src/creator/       # Main pipeline code (orchestrator)
+flow/
+├── src/flow/          # Main pipeline code (orchestrator)
 ├── src/gpu_backend/   # GPU inference server
 ├── docs/              # Research and architecture docs
 ├── config/            # Configuration files
@@ -42,8 +48,9 @@ creator/
 |------|--------|----------|
 | GPU Backend | PyTorch, Diffusers, CUDA/ROCm | High |
 | Pipeline Orchestration | Python, async, task queues | High |
-| Video Assembly | FFmpeg, Python | Medium |
+| TTS Integration | Audio processing, ML models | Medium |
 | Publishing Integration | OAuth, REST APIs | Medium |
+| Video Assembly | FFmpeg, Python | Medium |
 | Testing & CI | pytest, GitHub Actions | Medium |
 | Documentation | Technical writing | Low |
 | Fine-tuning | ML training, LoRA | Future |
@@ -52,7 +59,7 @@ creator/
 
 1. **Fork** the repo and create a feature branch from `main`
 2. **Write tests** for new functionality
-3. **Follow existing code style** — run linting before submitting
+3. **Follow existing code style** — run `uv run ruff check` before submitting
 4. **Keep PRs focused** — one feature or fix per PR
 5. **Document** any new configuration options or architecture decisions
 
@@ -67,7 +74,7 @@ creator/
 ### Architecture Principles
 
 - **Modular**: Each pipeline stage is independent and replaceable
-- **Backend-agnostic**: GPU backend is accessed via HTTP API — any provider works
+- **Backend-agnostic**: GPU backend accessed via HTTP API — any provider works
 - **Headless-first**: No UI needed; everything runs autonomously
 - **Configuration-driven**: Behavior controlled via TOML config, not code changes
 

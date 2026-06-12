@@ -121,7 +121,8 @@ For a content channel posting 2 shorts per day:
 |------|------|-----------|
 | LLM API (DeepSeek/OpenAI for scripts) | ~$5-$20 | Monthly |
 | TTS (Edge TTS) | Free | - |
+| TTS (MisoTTS 8B, self-hosted) | Included in GPU time | - |
 | TTS (ElevenLabs, if premium voice) | ~$5-$22 | Monthly |
-| VPS (orchestrator, this server) | Already have | - |
+| VPS (orchestrator) | ~$5-$20 | Monthly |
 | Domain/hosting | Minimal | Monthly |
 | Upload-Post (auto-publishing) | Varies | Monthly |

@@ -2,11 +2,11 @@
 
 ## Overview
 
-Creator is an open-source autonomous video generation pipeline that replicates Google Flow's filmmaking architecture using self-hosted open-source models. It transforms a topic into a fully produced, multi-scene video — and optionally publishes it.
+Flow is an open-source autonomous video generation pipeline — a self-hosted Google Flow alternative. It replicates Google Flow's scene-chaining filmmaking architecture using Wan 2.2 and other open-source models. Give it a topic and it produces a fully assembled, published video.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        CREATOR PIPELINE                          │
+│                     FLOW PIPELINE (VPS)                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────┐    ┌───────────┐    ┌──────────────┐             │
@@ -23,21 +23,21 @@ Creator is an open-source autonomous video generation pipeline that replicates G
 │  │    2. Get character refs from Character Bank           │     │
 │  │    3. Get prev_last_frame (if not first scene)         │     │
 │  │    4. Call Video Model (T2V or I2V/FLF2V)             │     │
-│  │    5. Validate output (quality check)                  │     │
+│  │    5. Validate output (quality check + retry)          │     │
 │  │    6. Extract last frame for next scene               │     │
 │  │    7. Store clip                                       │     │
-│  └───────────────────────────────┬───────────────────────┘     │
+│  └───────────────────────────┬───────────────────────────┘     │
 │                                  │                              │
 │                                  ▼                              │
 │  ┌───────────────────────────────────────────────────────┐     │
 │  │              POST-PRODUCTION                           │     │
 │  │                                                        │     │
-│  │  1. TTS narration generation (aligned to script)       │     │
+│  │  1. TTS narration (Edge TTS or MisoTTS 8B + cloning)  │     │
 │  │  2. Subtitle generation                               │     │
 │  │  3. Background music selection/generation             │     │
 │  │  4. FFmpeg assembly (clips + audio + subs + music)    │     │
 │  │  5. Optional upscale (Real-ESRGAN for 4K)            │     │
-│  └───────────────────────────────┬───────────────────────┘     │
+│  └───────────────────────────┬───────────────────────────┘     │
 │                                  │                              │
 │                                  ▼                              │
 │  ┌───────────────────────────────────────────────────────┐     │
@@ -51,21 +51,21 @@ Creator is an open-source autonomous video generation pipeline that replicates G
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              │ API calls
+                              │ HTTP API
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              GPU BACKEND (Remote)                                │
+│              GPU BACKEND (Cloud)                                 │
 │                                                                  │
-│  Serves Wan 2.2 models via HTTP API:                            │
+│  Serves Wan 2.2 models + MisoTTS via HTTP API:                  │
 │  - POST /generate/t2v  (text-to-video)                          │
 │  - POST /generate/i2v  (image-to-video, frame conditioning)     │
 │  - POST /generate/flf2v (first-last frame to video)            │
-│  - GET  /status/:job_id                                         │
-│  - GET  /result/:job_id                                         │
+│  - POST /tts/generate  (MisoTTS speech with voice cloning)     │
 │                                                                  │
 │  Infrastructure options:                                         │
 │  - Modal (A100 80GB, serverless)                                │
-│  - RunPod (MI300X, persistent or serverless)                    │
+│  - RunPod (A100, MI300X)                                        │
+│  - AWS / GCP (p4d, a2)                                          │
 │  - Self-hosted 8× MI300X node                                  │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -77,13 +77,13 @@ Creator is an open-source autonomous video generation pipeline that replicates G
 
 - Triggers pipeline on schedule (e.g., daily at 2am)
 - Can also be triggered manually or via webhook
-- Manages queue of topics to produce
+- Manages queue of topics (file-based or LLM-generated)
 
 ### 2. Writer (LLM Script Engine)
 
 - **Input**: Topic or keyword
 - **Output**: Structured shot list (JSON)
-- **LLM**: DeepSeek V3 / GPT-4o-mini / Claude Haiku (cheap, fast)
+- **LLM**: Any OpenAI-compatible API (DeepSeek, GPT-4o-mini, Ollama)
 - Generates: narration script, scene descriptions, camera directions, character descriptions
 
 Shot list schema:
@@ -113,31 +113,31 @@ Shot list schema:
 ### 3. Character Bank
 
 - Stores reference images for recurring characters
-- On first appearance: generate a reference image (via T2I or first scene extraction)
+- On first appearance: extract reference from generated scene
 - On subsequent scenes: inject reference into I2V/S2V generation
-- Persists across videos for brand consistency
+- Persists across videos (disk-backed manifest.json)
 
 ### 4. Video Generation Backend
 
 - Receives generation requests via HTTP API
 - Runs Wan 2.2 models (T2V, I2V, FLF2V, S2V)
-- Returns video clips as MP4/raw frames
-- Supports batching and queuing
+- Quality validation with automatic retry (up to 3x)
+- Supports Modal (serverless), RunPod, and self-hosted
 
 ### 5. Post-Production
 
-- **TTS**: Edge TTS (free, 300+ voices) or ElevenLabs (premium)
-- **Subtitles**: Whisper-based alignment or edge-tts timestamps
-- **Music**: Royalty-free library or AI-generated (MusicGen)
-- **Assembly**: FFmpeg with crossfade transitions between scenes
+- **TTS**: Edge TTS (free) or MisoTTS 8B (natural, voice cloning)
+- **Subtitles**: SRT generation from scene narration segments
+- **Music**: Royalty-free library
+- **Assembly**: FFmpeg concat + crossfade + audio mixing
 - **Upscale**: Optional Real-ESRGAN for 4K output
 
 ### 6. Publisher
 
-- Handles OAuth for each platform
-- Generates platform-specific metadata via LLM
-- Schedules posts for optimal times
-- Handles retries and rate limits
+- TikTok Content Posting API (OAuth + upload)
+- YouTube Data API v3 (resumable upload)
+- Instagram Graph API (stub)
+- LLM-generated metadata (titles, descriptions, hashtags)
 
 ## Data Flow
 
@@ -151,9 +151,10 @@ Topic (string)
 
 ## Key Design Decisions
 
-1. **Headless/non-interactive**: No UI needed — fully autonomous
+1. **Headless/non-interactive**: No UI — fully autonomous
 2. **Modular**: Each component is independent and replaceable
-3. **Backend-agnostic**: GPU backend can be Modal, RunPod, self-hosted, or any HTTP endpoint
-4. **Scene-based**: Videos are built from 5s scenes, enabling parallelism and retry
-5. **Character persistence**: Characters stay consistent across scenes and across videos
-6. **Quality gates**: Each generated clip is validated before assembly
+3. **Backend-agnostic**: GPU backend accessed via HTTP — any provider works
+4. **Scene-based**: Videos built from 5s scenes, enabling parallelism and retry
+5. **Character persistence**: Characters stay consistent across scenes and videos
+6. **Quality gates**: Each clip validated before assembly, retry on failure
+7. **Multi-provider TTS**: Free (Edge) or premium (MisoTTS with voice cloning)
