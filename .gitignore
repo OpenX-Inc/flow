@@ -39,6 +39,9 @@ storage/
 .DS_Store
 Thumbs.db
 
+# Private platform repo
+openx-flow/
+
 # Environment
 .env
 .env.*
