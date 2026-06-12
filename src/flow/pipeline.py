@@ -43,6 +43,8 @@ class Pipeline:
         # Stage 2: Generate video clips
         if self.config.generation_mode == "parallel_flf2v":
             clips = self._generate_parallel(shot_list)
+        elif self.config.generation_mode == "pipelined_flf2v":
+            clips = self._generate_pipelined(shot_list)
         else:
             clips = self._generate_sequential(shot_list)
 
@@ -95,4 +97,50 @@ class Pipeline:
         par_gen = ParallelGenerator(self.config)
         clips = par_gen.generate_scenes(shot_list, keyframes)
         console.print(f"  ✓ Generated {len(clips)} clips in parallel")
+        return clips
+
+    def _generate_pipelined(self, shot_list):
+        """Pipelined generation: start video gen as keyframes become ready."""
+        import concurrent.futures
+
+        console.print(
+            "\n[bold]Stage 2/4:[/] Generating clips (pipelined FLF2V)..."
+        )
+
+        keyframe_dir = Path(tempfile.mkdtemp(prefix="flow_kf_"))
+        keyframe_dir.mkdir(parents=True, exist_ok=True)
+        kf_gen = KeyframeGenerator(self.config)
+        par_gen = ParallelGenerator(self.config, max_workers=7)
+
+        # Generate keyframes one by one; as soon as a pair is ready,
+        # submit video job to the parallel generator's thread pool.
+        prompts = kf_gen._build_keyframe_prompts(shot_list)
+        keyframes: list[Path] = []
+        video_futures: list[concurrent.futures.Future] = []
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=7)
+
+        for i, prompt in enumerate(prompts):
+            path = keyframe_dir / f"keyframe_{i:04d}.png"
+            kf_gen._generate_image(prompt, path)
+            keyframes.append(path)
+            console.print(f"  Keyframe {i + 1}/{len(prompts)} ✓")
+
+            # Once we have a pair, submit video generation
+            if i > 0 and i - 1 < len(shot_list.scenes):
+                scene = shot_list.scenes[i - 1]
+                job = {
+                    "scene_id": scene.id,
+                    "prompt": scene.visual_prompt,
+                    "camera": scene.camera,
+                    "start_frame": keyframes[i - 1],
+                    "end_frame": keyframes[i],
+                }
+                future = executor.submit(par_gen._generate_one, job)
+                video_futures.append(future)
+
+        # Collect results
+        clips = [f.result() for f in video_futures]
+        executor.shutdown(wait=False)
+        clips.sort(key=lambda c: c.scene_id)
+        console.print(f"  ✓ Generated {len(clips)} clips (pipelined)")
         return clips

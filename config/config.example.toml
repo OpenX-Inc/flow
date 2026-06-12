@@ -56,4 +56,4 @@ auto_generate_topics = true
 # General settings
 output_dir = "storage/outputs"
 aspect_ratio = "9:16"  # 9:16 for shorts, 16:9 for long-form
-generation_mode = "sequential"  # sequential or parallel_flf2v
+generation_mode = "sequential"  # sequential, parallel_flf2v, or pipelined_flf2v
