@@ -37,10 +37,3 @@ jobs:
 
       - name: Build package
         run: uv build
-
-      - name: Publish to GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          uv publish --publish-url https://ghcr.io/v2/OpenX-Inc/flow \
-            --token $GITHUB_TOKEN dist/*
