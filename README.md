@@ -9,6 +9,7 @@ An open-source autonomous video generation pipeline. Give it a topic — it writ
 No human in the loop.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/OpenX-Inc/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenX-Inc/flow/actions/workflows/ci.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/OpenX-Inc/flow.svg?style=social)](https://github.com/OpenX-Inc/flow)
 
 </div>
@@ -131,11 +132,14 @@ uv sync
 cp config/config.example.toml config/config.toml
 # Edit config.toml with your API keys and GPU backend
 
+# Dry run (generates script only, no GPU needed)
+python -m flow generate --topic "The history of the internet" --duration 60 --dry-run
+
 # Generate a video
-python -m flow.pipeline --topic "The history of the internet" --duration 60
+python -m flow generate --topic "The history of the internet" --duration 60
 
 # Or run the scheduler for autonomous daily generation
-python -m flow.scheduler
+python -m flow schedule
 ```
 
 ## Self-Hosted vs OpenX Flow (Cloud)
