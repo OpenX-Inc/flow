@@ -157,6 +157,7 @@ python -m flow.scheduler
 - [Cost Projections](docs/costs/projections.md)
 - [Video Models Research](docs/research/video-models.md)
 - [GPU Infrastructure Research](docs/research/gpu-infrastructure.md)
+- [MI300X Multi-Instance Benchmarking](docs/research/mi300x-benchmarking.md)
 - [Google Flow Analysis](docs/research/google-flow-analysis.md)
 - [Publishing & Distribution](docs/research/publishing.md)
 
