@@ -66,7 +66,7 @@ class Writer:
 
     def _call_llm(self, user_prompt: str) -> str:
         """Call the LLM API and return the response text."""
-        base_url = self.llm.base_url or "https://api.openai.com/v1"
+        base_url = self.llm.base_url or _default_base_url(self.llm.provider)
         url = f"{base_url}/chat/completions"
 
         headers = {
@@ -103,3 +103,13 @@ class Writer:
             scenes=scenes,
             characters=characters,
         )
+
+
+def _default_base_url(provider: str) -> str:
+    """Return default base URL for known providers."""
+    urls = {
+        "openai": "https://api.openai.com/v1",
+        "deepseek": "https://api.deepseek.com",
+        "ollama": "http://localhost:11434/v1",
+    }
+    return urls.get(provider, "https://api.openai.com/v1")

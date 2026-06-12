@@ -2,11 +2,23 @@
 # Copy this file to config/config.toml and fill in your values.
 
 [llm]
-# Supported: openai, deepseek
+# Supported: openai, deepseek, ollama (any OpenAI-compatible API works)
 provider = "openai"
 api_key = ""
 base_url = ""  # Leave empty for default OpenAI endpoint
 model = "gpt-4o-mini"
+
+# DeepSeek example:
+#   provider = "deepseek"
+#   api_key = "sk-..."
+#   base_url = "https://api.deepseek.com"
+#   model = "deepseek-chat"
+
+# Ollama (local, free, no API key):
+#   provider = "ollama"
+#   api_key = ""
+#   base_url = "http://localhost:11434/v1"
+#   model = "llama3"
 
 [gpu_backend]
 # Supported: modal, runpod, self-hosted
