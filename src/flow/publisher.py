@@ -99,15 +99,24 @@ class Publisher:
 
         Requires OAuth credentials configured.
         Videos ≤60s and 9:16 are auto-detected as Shorts.
+        Uses resumable upload protocol.
         """
+        from flow.publishers.youtube import upload_to_youtube
+
         client_id = self.config.publish.youtube_client_id
-        if not client_id:
-            console.print("  → YouTube: no client_id configured")
+        client_secret = self.config.publish.youtube_client_secret
+        if not client_id or not client_secret:
+            console.print("  → YouTube: no credentials configured")
             return
 
-        # This would use google-auth-oauthlib in production.
-        # Simplified: assumes access_token is pre-configured.
-        console.print("  → YouTube: OAuth flow not yet automated")
+        upload_to_youtube(
+            video_path=video_path,
+            title=metadata["title"],
+            description=metadata["description"],
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+        console.print("  ✓ YouTube: uploaded")
 
     def _upload_instagram(
         self, video_path: Path, metadata: dict
