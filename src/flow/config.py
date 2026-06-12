@@ -57,6 +57,7 @@ class Config(BaseModel):
     scheduler: SchedulerConfig = SchedulerConfig()
     output_dir: str = "storage/outputs"
     aspect_ratio: str = "9:16"  # 9:16, 16:9
+    generation_mode: str = "sequential"  # sequential, parallel_flf2v
 
 
 def load_config(path: str | Path = "config/config.toml") -> Config:
