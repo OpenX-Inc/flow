@@ -1,0 +1,29 @@
+{
+  "title": "OpenX Flow — 15-Second Product Intro",
+  "description": "A benchmark demonstration: 3 scenes explaining OpenX Flow, generated from a brand image using Wan 2.2 I2V on Modal A100.",
+  "resolution": "480p",
+  "fps": 16,
+  "clip_duration": 5,
+  "model": "Wan2.2-T2V-14B",
+  "scenes": [
+    {
+      "id": 1,
+      "type": "i2v",
+      "prompt": "A cinematic tech logo reveal. The OpenX Flow logo emerges from a dark void with a subtle glow, particles of light floating around it. The camera slowly zooms in. Dark moody lighting, professional product video style, high quality, 4K render.",
+      "first_frame": "assets/openx-favicon.png",
+      "duration": 5
+    },
+    {
+      "id": 2,
+      "type": "t2v",
+      "prompt": "A futuristic holographic interface displaying a video editing timeline with multiple scenes. AI-generated video clips appear one by one in the timeline. Blue and green holographic glow, dark background, cinematic tech product demo, smooth camera movement.",
+      "duration": 5
+    },
+    {
+      "id": 3,
+      "type": "t2v",
+      "prompt": "A grid of AI-generated video thumbnails being automatically published to social media platforms. Icons of YouTube, TikTok animate onto the screen. A pipeline visualization shows data flowing from left to right. Dark tech aesthetic, professional motion graphics style.",
+      "duration": 5
+    }
+  ]
+}
