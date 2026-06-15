@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/OpenX-Inc/flow/compare/v0.1.0...v0.2.0) (2026-06-15)
+
+
+### Features
+
+* add generated video sample (242KB, 5s @ 16fps) ([190f812](https://github.com/OpenX-Inc/flow/commit/190f812355bb7f5dfc171a04ed7dfed863464d4d))
+* first benchmark — Wan 2.2 I2V generation on Modal A100 ([5a08ea1](https://github.com/OpenX-Inc/flow/commit/5a08ea14e50c5109c35f59326ee8ed59295576d4))
+* first benchmark — Wan 2.2 I2V on Modal A100 ([6c93a77](https://github.com/OpenX-Inc/flow/commit/6c93a77825df3fd5a25a444d9707897a1dba31ce))
+
 ## 0.1.0 (2026-06-12)
 
 
