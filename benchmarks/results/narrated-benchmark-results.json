@@ -1,0 +1,16 @@
+{
+  "title": "The Deep Ocean",
+  "pipeline": "writer \u2192 tts \u2192 generator \u2192 assembly",
+  "model": "Wan2.2-TI2V-5B",
+  "tts": "Edge TTS (en-US-GuyNeural)",
+  "gpu": "A100-40GB",
+  "scenes": 3,
+  "resolution": "832x480",
+  "fps": 16,
+  "inference_steps": 50,
+  "gpu_time_s": 474.8,
+  "total_time_s": 494.8,
+  "estimated_cost_usd": 0.2506,
+  "tts_cost": "free",
+  "assembly_cost": "free (local ffmpeg)"
+}
