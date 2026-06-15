@@ -1,0 +1,25 @@
+{
+  "title": "Water — Scene Chaining Demo",
+  "description": "3 connected scenes demonstrating multi-scene generation. Cinematic water narrative.",
+  "model": "Wan2.2-TI2V-5B",
+  "resolution": "480p",
+  "fps": 16,
+  "inference_steps": 50,
+  "scenes": [
+    {
+      "id": 1,
+      "type": "t2v",
+      "prompt": "Cinematic extreme close-up macro shot of a single perfect water droplet falling in ultra slow motion against a deep black void. The droplet catches dramatic white rim lighting, internal caustic refractions visible. Shot on RED camera, shallow depth of field, 120fps slow motion, no other objects in frame, hyper-realistic, photorealistic."
+    },
+    {
+      "id": 2,
+      "type": "t2v",
+      "prompt": "Cinematic slow motion shot of a water droplet impacting a perfectly still dark water surface. Concentric ripples expanding outward in perfect circles. Tiny secondary droplets suspended mid-air from the splash. Dramatic blue-white rim lighting from below the water surface, dark moody atmosphere, shot on Phantom high-speed camera, photorealistic, no text."
+    },
+    {
+      "id": 3,
+      "type": "t2v",
+      "prompt": "Cinematic wide establishing shot slowly pulling back to reveal a vast calm ocean at golden hour. Gentle ripples catch warm orange and deep purple light from the sunset sky. Volumetric atmospheric haze on the distant horizon. Smooth slow dolly out camera movement, shot on ARRI Alexa with anamorphic lens, subtle film grain, photorealistic, breathtaking landscape."
+    }
+  ]
+}

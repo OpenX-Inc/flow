@@ -1,0 +1,59 @@
+{
+  "test1_water_3scenes": {
+    "model": "Wan2.2-TI2V-5B",
+    "gpu": "A100-40GB",
+    "resolution": "832x480",
+    "steps": 50,
+    "frames": 81,
+    "fps": 16,
+    "scenes": 3,
+    "model_load_time_s": 233.9,
+    "per_scene_generation_s": [
+      82.8,
+      82.6,
+      82.7
+    ],
+    "total_time_s": 484.2,
+    "cost_usd": 0.2555
+  },
+  "test2_steps_comparison": {
+    "prompt": "Cinematic extreme close-up of a single water droplet falling in ultra slow motion against a pure bla...",
+    "30_steps": {
+      "generation_time_s": 51.3,
+      "total_time_s": 93.7
+    },
+    "50_steps": {
+      "generation_time_s": 82.8
+    },
+    "speedup": 1.61
+  },
+  "test3_mars_5scenes": {
+    "model": "Wan2.2-TI2V-5B",
+    "gpu": "A100-40GB",
+    "resolution": "832x480",
+    "steps": 50,
+    "frames": 81,
+    "fps": 16,
+    "scenes": 5,
+    "model_load_time_s": 46.5,
+    "per_scene_generation_s": [
+      82.2,
+      82.5,
+      82.7,
+      82.7,
+      82.7
+    ],
+    "total_time_s": 463.9,
+    "cost_usd": 0.2448,
+    "cost_per_scene_usd": 0.049
+  },
+  "summary": {
+    "total_wall_clock_s": 1059.5,
+    "total_estimated_cost_usd": 0.56,
+    "total_videos_generated": 9,
+    "total_video_duration_s": 45,
+    "avg_generation_per_scene_s": 79.1,
+    "cost_per_scene_usd": 0.0621,
+    "cost_per_minute_of_video_usd": 0.75
+  }
+}
