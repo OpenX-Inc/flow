@@ -1,0 +1,17 @@
+{
+  "model": "Wan2.2-TI2V-5B",
+  "gpu": "A100-40GB",
+  "resolution": "832x480",
+  "num_frames": 81,
+  "fps": 16,
+  "inference_steps": 30,
+  "type": "i2v",
+  "prompt": "A cinematic tech logo reveal. The OpenX Flow logo emerges from a dark void with a subtle glow, particles of light floating around it. The camera slowly zooms in. Dark moody lighting, professional product video style, high quality, 4K render.",
+  "model_load_time_s": 225.6,
+  "generation_time_s": 54.1,
+  "export_time_s": 1.9,
+  "total_gpu_time_s": 281.6,
+  "wall_clock_time_s": 289.3,
+  "video_size_kb": 241.7,
+  "estimated_cost_usd": 0.1527
+}
