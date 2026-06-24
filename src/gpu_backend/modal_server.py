@@ -31,16 +31,25 @@ image = (
     .apt_install("ffmpeg")
 )
 
+# Separate, lighter image for voice cloning (no diffusers; Coqui XTTS-v2)
+voice_image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .apt_install("ffmpeg")
+    .pip_install("coqui-tts", "fastapi[standard]", "torch>=2.6.0")
+    .env({"COQUI_TOS_AGREED": "1"})
+)
+
 MODEL_T2V = "Wan-AI/Wan2.2-T2V-A14B-Diffusers"
 MODEL_I2V = "Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+MODEL_VACE = "Wan-AI/Wan2.1-VACE-14B-diffusers"
 
 
 @app.cls(
     image=image,
-    gpu=modal.gpu.A100(size="80GB"),
+    gpu="A100-80GB",
     volumes={"/models": volume},
     timeout=900,
-    container_idle_timeout=300,
+    scaledown_window=300,
 )
 class WanServer:
     """Wan 2.2 inference server running on Modal."""
@@ -54,22 +63,89 @@ class WanServer:
         self.device = "cuda"
         self.dtype = torch.float16
 
-        # Load T2V pipeline
+        # Load T2V pipeline (primary — used for most generation)
         self.t2v = WanPipeline.from_pretrained(
             MODEL_T2V,
             torch_dtype=self.dtype,
             cache_dir="/models",
         ).to(self.device)
 
-        # I2V shares most weights, load separately
-        self.i2v = WanPipeline.from_pretrained(
-            MODEL_I2V,
-            torch_dtype=self.dtype,
-            cache_dir="/models",
-        ).to(self.device)
+        # I2V loaded lazily on first use (can't fit both in 80GB simultaneously)
+        self._i2v = None
 
-    @modal.method()
-    def generate_t2v(
+    @property
+    def i2v(self):
+        if self._i2v is None:
+            import torch
+            from diffusers import WanPipeline
+
+            # Offload T2V to CPU to make room
+            self.t2v.to("cpu")
+            torch.cuda.empty_cache()
+
+            self._i2v = WanPipeline.from_pretrained(
+                MODEL_I2V,
+                torch_dtype=self.dtype,
+                cache_dir="/models",
+            ).to(self.device)
+        return self._i2v
+
+    @modal.fastapi_endpoint(method="POST", label="t2v")
+    def generate_t2v_endpoint(self, body: dict) -> dict:
+        """HTTP endpoint: text-to-video."""
+        return self._generate_t2v(
+            prompt=body["prompt"],
+            resolution=body.get("resolution", "480p"),
+            duration=body.get("duration", 5),
+        )
+
+    @modal.fastapi_endpoint(method="POST", label="i2v")
+    def generate_i2v_endpoint(self, body: dict) -> dict:
+        """HTTP endpoint: image-to-video."""
+        return self._generate_i2v(
+            prompt=body["prompt"],
+            first_frame_b64=body["first_frame_b64"],
+            resolution=body.get("resolution", "480p"),
+            duration=body.get("duration", 5),
+        )
+
+    @modal.fastapi_endpoint(method="POST", label="flf2v")
+    def generate_flf2v_endpoint(self, body: dict) -> dict:
+        """HTTP endpoint: first-last-frame to video (scene chaining).
+
+        Conditions on a first frame (and optional last frame) for temporal
+        continuity. Uses the I2V pipeline with the first frame as the anchor.
+        """
+        return self._generate_i2v(
+            prompt=body["prompt"],
+            first_frame_b64=body["first_frame_b64"],
+            resolution=body.get("resolution", "480p"),
+            duration=body.get("duration", 5),
+        )
+
+    @modal.fastapi_endpoint(method="POST", label="vace")
+    def generate_vace_endpoint(self, body: dict) -> dict:
+        """HTTP endpoint: Wan VACE — reference/edit/compose to video.
+
+        Best-effort: lazily loads WanVACEPipeline. Isolated from t2v/i2v so a
+        VACE/diffusers version mismatch never affects the proven paths.
+        """
+        try:
+            return self._generate_vace(
+                prompt=body["prompt"],
+                reference_b64=body.get("reference_b64") or body.get("first_frame_b64"),
+                resolution=body.get("resolution", "480p"),
+                duration=body.get("duration", 5),
+            )
+        except Exception as e:  # noqa: BLE001
+            return {"error": f"VACE unavailable: {e}"}
+
+    @modal.fastapi_endpoint(method="GET", label="health")
+    def health_endpoint(self) -> dict:
+        """Health check endpoint."""
+        return {"status": "ok", "model": "Wan2.2-14B", "endpoints": ["t2v", "i2v", "flf2v", "vace"]}
+
+    def _generate_t2v(
         self,
         prompt: str,
         resolution: str = "480p",
@@ -94,8 +170,7 @@ class WanServer:
 
         return self._save_output(output)
 
-    @modal.method()
-    def generate_i2v(
+    def _generate_i2v(
         self,
         prompt: str,
         first_frame_b64: str,
@@ -126,6 +201,41 @@ class WanServer:
                 guidance_scale=5.0,
             )
 
+        return self._save_output(output)
+
+    def _generate_vace(
+        self,
+        prompt: str,
+        reference_b64: str | None,
+        resolution: str = "480p",
+        duration: int = 5,
+        num_inference_steps: int = 30,
+    ) -> dict:
+        """Generate/edit video with Wan VACE (reference-driven composition)."""
+        import torch
+        from diffusers import WanVACEPipeline
+        from PIL import Image
+
+        if getattr(self, "_vace", None) is None:
+            self.t2v.to("cpu")
+            if self._i2v is not None:
+                self._i2v.to("cpu")
+            torch.cuda.empty_cache()
+            self._vace = WanVACEPipeline.from_pretrained(
+                MODEL_VACE, torch_dtype=self.dtype, cache_dir="/models"
+            ).to(self.device)
+
+        height, width = _resolution_to_dims(resolution)
+        num_frames = duration * 16
+        kwargs = dict(
+            prompt=prompt, height=height, width=width,
+            num_frames=num_frames, num_inference_steps=num_inference_steps,
+        )
+        if reference_b64:
+            ref = Image.open(io.BytesIO(base64.b64decode(reference_b64))).convert("RGB").resize((width, height))
+            kwargs["reference_images"] = [ref]
+        with torch.inference_mode():
+            output = self._vace(**kwargs)
         return self._save_output(output)
 
     def _save_output(self, output) -> dict:
@@ -160,13 +270,6 @@ class WanServer:
             "video_b64": video_b64,
             "last_frame_b64": last_frame_b64,
         }
-
-
-@app.function(image=image)
-@modal.fastapi_endpoint()
-def health():
-    """Health check endpoint."""
-    return {"status": "ok", "model": "Wan2.2-14B"}
 
 
 def _resolution_to_dims(resolution: str) -> tuple[int, int]:
