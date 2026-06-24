@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from src.flow.tools import (  # noqa: F401  (import for registration side-effects)
     context_read,
+    media_mgmt,
     timeline_edit,
     undo_tool,
 )
