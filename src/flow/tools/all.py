@@ -7,6 +7,7 @@ The MCP server and the agent loop both ``import src.flow.tools.all`` so the
 from __future__ import annotations
 
 from src.flow.tools import (  # noqa: F401  (import for registration side-effects)
+    analysis_read,
     context_read,
     flow_native,
     generate,
