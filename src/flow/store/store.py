@@ -1,54 +1,55 @@
-"""ProjectStore — JSON-file persistence for projects.
+"""ProjectStore — DB-backed persistence (SQLModel; SQLite default, Postgres via env).
 
-Dependency-light store fit for self-hosting: each project is one JSON file
-under ``base_dir``. Writes are atomic (tmp file + rename). The interface is
-deliberately small so a SQLModel/Postgres backend can replace it later without
-touching the tools.
+Stores each Project aggregate as a JSON document in the ``projects`` table with
+queryable ``user_id``/``revision`` columns. Same small interface the tools rely
+on (save/load/list/delete), now with transactions, safe concurrency, and a
+Postgres path — replacing the earlier JSON-file store.
 """
 
 from __future__ import annotations
 
-import json
-import os
-import tempfile
-from pathlib import Path
+from datetime import UTC, datetime
 
+from sqlmodel import select
+
+from src.flow.store.db import ProjectRow, get_session, make_engine
 from src.flow.store.project import Project
 
 
 class ProjectStore:
-    def __init__(self, base_dir: str | Path = "~/.flow/projects") -> None:
-        self.base_dir = Path(os.path.expanduser(str(base_dir)))
-        self.base_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(self, engine=None, url: str | None = None) -> None:
+        self.engine = engine or make_engine(url)
 
-    def _path(self, project_id: str) -> Path:
-        return self.base_dir / f"{project_id}.json"
-
-    def save(self, project: Project) -> None:
-        """Atomically persist a project (tmp file + rename)."""
-        path = self._path(project.project_id)
-        data = project.model_dump_json(indent=2)
-        fd, tmp = tempfile.mkstemp(dir=self.base_dir, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w") as f:
-                f.write(data)
-            os.replace(tmp, path)  # atomic on POSIX
-        finally:
-            if os.path.exists(tmp):
-                os.unlink(tmp)
+    def save(self, project: Project, user_id: str = "local") -> None:
+        with get_session(self.engine) as s:
+            row = s.get(ProjectRow, project.project_id)
+            doc = project.model_dump_json()
+            if row is None:
+                row = ProjectRow(project_id=project.project_id, user_id=user_id)
+            row.user_id = user_id
+            row.revision = project.revision
+            row.updated_at = datetime.now(UTC)
+            row.doc = doc
+            s.add(row)
+            s.commit()
 
     def load(self, project_id: str) -> Project | None:
-        path = self._path(project_id)
-        if not path.exists():
-            return None
-        return Project.model_validate_json(path.read_text())
+        with get_session(self.engine) as s:
+            row = s.get(ProjectRow, project_id)
+            return Project.model_validate_json(row.doc) if row else None
 
-    def list_projects(self) -> list[str]:
-        return sorted(p.stem for p in self.base_dir.glob("*.json"))
+    def list_projects(self, user_id: str | None = None) -> list[str]:
+        with get_session(self.engine) as s:
+            stmt = select(ProjectRow.project_id)
+            if user_id is not None:
+                stmt = stmt.where(ProjectRow.user_id == user_id)
+            return sorted(s.exec(stmt).all())
 
     def delete(self, project_id: str) -> bool:
-        path = self._path(project_id)
-        if path.exists():
-            path.unlink()
+        with get_session(self.engine) as s:
+            row = s.get(ProjectRow, project_id)
+            if row is None:
+                return False
+            s.delete(row)
+            s.commit()
             return True
-        return False
