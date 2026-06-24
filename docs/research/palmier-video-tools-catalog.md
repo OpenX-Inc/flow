@@ -77,32 +77,64 @@
 
 ---
 
-## Flow's tool set (scene-based subset — what we actually build)
+## Flow's tool set — ALL 35 (0.3 scope, "beat Palmier")
 
-Flow's primitive is the **scene** (not multi-track clips), so we take the
-*read-context + generate + arrange + cast* subset and drop NLE-only tools
-(keyframes, color scopes, ripple, tracks).
+Decision: Flow's agentic editor ships the **full** tool surface — every Palmier
+tool, re-implemented richer, plus Flow-specific casting tools. This is the **0.3**
+release (0.2.0 is tagged; these `feat:` commits bump the minor to 0.3.0).
 
-| Flow tool | Mirrors Palmier | Notes |
-|--|--|--|
-| `get_project` | `get_timeline` | returns scenes (id, order, prompt, duration, status, video_url) + project meta + **characters**; call first |
-| `list_scenes` | (subset of get_timeline) | scenes only |
-| `inspect_scene` | `inspect_media` | sample frames + (later) transcript of one scene |
-| `list_characters` | — (Flow-specific) | the user's reusable cast |
-| `list_models` | `list_models` | generation models (Wan2.2/VACE) + their caps |
-| `create_scene` | `add_clips` | add a scene (prompt, duration) |
-| `update_scene` | `set_clip_properties` | prompt / duration / narration |
-| `regenerate_scene` | `generate_video` (re-roll) | re-run with prompt/model/refs in place |
-| `reorder_scenes` | `move_clips` | change scene order |
-| `delete_scene` | `remove_clips` | remove a scene |
-| `attach_character_to_scene` | — (Flow-specific) | subject consistency (S2V/refs) |
-| `set_narration` / `add_captions` | `generate_audio` / `add_captions` | TTS narration + captions |
-| `start_generation` | `generate_video` (batch) | generate all pending scenes |
-| `undo` | `undo` | reversible scene edits |
+### Foundation: scenes ARE the timeline (no NLE rebuild)
+Key realization: Flow's scene model is **not** a constraint to escape — the
+ordered scenes already *are* the video track. After ffmpeg assembly they
+concatenate into one complete track. So we don't build a generic from-scratch
+NLE; we layer timeline semantics onto what we have:
+- **Video track = ordered scenes.** Each scene is a clip carrying frame/duration,
+  trims, speed, opacity, transform, and keyframes.
+- **Audio track(s) = narration / music** (edge-tts / MisoTTS / imported).
+- **Text track = captions / titles.**
+- **Render = ffmpeg** composes the tracks → the final video (the "complete
+  track" the scenes assemble into).
 
-**Explicitly NOT building (NLE-only, out of scope for v1):** `set_keyframes`,
-`apply_color`/`inspect_color`, `split_clip`, `ripple_delete_ranges`,
-`sync_audio`, `remove_tracks`, multi-track `move_clips`, folder management.
+So timeline tools operate on scenes-as-clips: `move_clips`→reorder scenes,
+`split_clip`→split a scene, `ripple_delete_ranges`→cut a time range across
+scenes, `set_clip_properties`/`set_keyframes`→per-scene props/animation,
+`add_clips`/`insert_clips`→add scene/media at a position. Build order:
+1. **Extend the scene/timeline model** (scenes gain clip props + keyframes; add
+   audio + caption tracks) + migrations. No generic NLE engine needed.
+2. **VPS MCP server** exposing all tools (loopback + auth, à la Palmier).
+3. **Agent loop** (nanocode pattern) → NVIDIA build, default `kimi`.
+4. **Per-tool deep specs** (below) → implementations, each richer than Palmier's.
 
-These are the tools the **VPS MCP server** exposes; the agent loop (kimi via
-NVIDIA build) calls them with full project + character context.
+### "Stand out" bar (how each tool beats Palmier's)
+- **Richer types:** full JSON-Schema with enums, ranges, units (frames vs
+  seconds), and examples — not loose dicts.
+- **Generation-native:** Flow tools know about Wan2.2/VACE + characters + voice
+  cloning (Palmier proxies 3rd-party models; we own the pipeline).
+- **Casting/consistency:** first-class `attach_character` / subject-consistency
+  (S2V, reference frames) — Palmier has no character concept.
+- **Autonomy:** a `plan_video`/orchestrator tool (script→scenes) — Palmier is
+  assist-only; Flow is autonomous-first.
+- Keep Palmier's good habits: `get_project` first, defaults omitted, every edit
+  undoable, `canGenerate`/credits gate.
+
+### The full 35 (mapped, all in scope)
+Read/context: `get_project`(was get_timeline), `get_media`, `inspect_media`,
+`inspect_timeline`, `get_transcript`, `search_media`, `inspect_color`,
+`list_folders`, `list_models`
+Timeline edit: `add_clips`, `insert_clips`, `remove_clips`, `remove_tracks`,
+`move_clips`, `set_clip_properties`, `set_keyframes`, `split_clip`,
+`ripple_delete_ranges`, `sync_audio`, `undo`
+Text: `add_texts`, `add_captions`
+Generate: `generate_video`, `generate_image`, `generate_audio`, `upscale_media`,
+`import_media`
+Color/FX: `apply_color`, `apply_effect`
+Media mgmt: `create_folder`, `move_to_folder`, `rename_media`, `rename_folder`,
+`delete_media`, `delete_folder`
+Flow-specific (beyond Palmier): `list_characters`, `attach_character_to_scene`,
+`plan_video` (orchestrator), `set_narration`/voice-clone
+
+Per-group deep specs live in `docs/research/tools/` (one doc per group), each
+with full schemas, behaviors, edge cases, and the Flow-vs-Palmier upgrade.
+
+These tools are exposed by the **VPS MCP server**; the agent loop (kimi via
+NVIDIA build) drives them with full project + character context.
