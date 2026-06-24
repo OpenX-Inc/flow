@@ -103,3 +103,68 @@ def reorder_scenes(ctx: ToolContext, args: dict) -> dict:
     for c in p.clips:
         c.order_index = rank[c.clip_id]
     return result.ok(summary=f"reordered {len(order)} scenes")
+
+
+@tool("set_clip_properties", "Set playback/visual properties on a scene: speed, "
+      "volume, opacity, fades, or transition-in. Only provided fields change.",
+      {"project_id": "string?", "clip_id": "string",
+       "speed": {"type": "number", "minimum": 0.1, "maximum": 8, "optional": True},
+       "volume": {"type": "number", "minimum": 0, "maximum": 4, "optional": True},
+       "opacity": {"type": "number", "minimum": 0, "maximum": 1, "optional": True},
+       "fade_in_frames": {"type": "integer", "minimum": 0, "optional": True},
+       "fade_out_frames": {"type": "integer", "minimum": 0, "optional": True},
+       "transition": {"type": "string", "optional": True,
+                      "description": "transition INTO this clip, e.g. crossfade"}},
+      mutating=True)
+def set_clip_properties(ctx: ToolContext, args: dict) -> dict:
+    clip = ctx.project.get_clip(args["clip_id"])
+    if clip is None:
+        return result.error("not_found", f"no clip {args['clip_id']}")
+    for prop in ("speed", "volume", "opacity", "fade_in_frames",
+                 "fade_out_frames", "transition"):
+        if prop in args:
+            setattr(clip, prop, args[prop])
+    return result.ok(summary=f"set properties on {clip.clip_id}")
+
+
+@tool("split_clip", "Split a scene into two at a clip-relative frame (timeline "
+      "frames into the clip). Both halves share the source; later scenes shift.",
+      {"project_id": "string?", "clip_id": "string",
+       "at_frame": {"type": "integer", "minimum": 1,
+                    "description": "clip-relative timeline frame to cut at"}},
+      mutating=True)
+def split_clip(ctx: ToolContext, args: dict) -> dict:
+    import math
+
+    p = ctx.project
+    clip = p.get_clip(args["clip_id"])
+    if clip is None:
+        return result.error("not_found", f"no clip {args['clip_id']}")
+    at = args["at_frame"]
+    if at <= 0 or at >= clip.effective_frames:
+        return result.error(
+            "invalid", f"at_frame must be within (0, {clip.effective_frames})")
+
+    # Map the clip-relative timeline frame to a source-frame offset (speed-aware).
+    source_offset = math.ceil(at * clip.speed)
+    cut = clip.in_frame + source_offset
+
+    second = clip.model_copy(deep=True)
+    second.clip_id = Clip().clip_id  # fresh id
+    # First half ends at cut; second half starts at cut.
+    clip.out_frame = cut
+    second.in_frame = cut
+    # Split keyframes at the cut (clip-relative), rebase the second half.
+    clip.keyframes = [k for k in clip.keyframes if k.frame < at]
+    second.keyframes = [
+        k.model_copy(update={"frame": k.frame - at})
+        for k in second.keyframes if k.frame >= at
+    ]
+    # Insert the second half right after the first; re-index.
+    ordered = p.ordered_clips()
+    idx = next(i for i, c in enumerate(ordered) if c.clip_id == clip.clip_id)
+    ordered.insert(idx + 1, second)
+    for i, c in enumerate(ordered):
+        c.order_index = i
+    p.clips = ordered
+    return result.ok(summary=f"split {clip.clip_id}", new_clip_id=second.clip_id)
