@@ -11,6 +11,7 @@ from src.flow.tools import (  # noqa: F401  (import for registration side-effect
     flow_native,
     generate,
     media_mgmt,
+    timeline_advanced,
     timeline_edit,
     undo_tool,
 )
