@@ -49,6 +49,26 @@ class Transform(BaseModel):
     rotation: float = 0.0  # degrees
 
 
+class ColorGrade(BaseModel):
+    """Named color-grade controls (all no-ops by default). Compiled to an ffmpeg
+    filter chain (eq/colorbalance/colortemperature) at assembly."""
+
+    exposure: float = 0.0  # stops
+    temperature: float = 0.0  # -100 (cool) .. 100 (warm)
+    contrast: float = 1.0
+    saturation: float = 1.0
+    brightness: float = 0.0  # -1 .. 1
+    lut: str | None = None  # path/id of a 3D LUT
+
+
+class Effect(BaseModel):
+    """A named look/FX applied to a clip (ordered, reorderable, stable id)."""
+
+    effect_id: str = Field(default_factory=lambda: new_id("fx"))
+    name: str  # e.g. blur, sharpen, vignette, grain, glow
+    params: dict = {}
+
+
 class ClipStatus(str, Enum):
     pending = "pending"
     generating = "generating"
@@ -90,6 +110,8 @@ class Clip(BaseModel):
     transition: str = ""  # transition INTO this clip (e.g. "crossfade")
 
     keyframes: list[Keyframe] = []
+    color_grade: ColorGrade | None = None
+    effects: list[Effect] = []
 
     # Render artifacts
     video_url: str | None = None
