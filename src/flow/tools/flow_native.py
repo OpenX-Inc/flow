@@ -132,4 +132,16 @@ def start_generation(ctx: ToolContext, args: dict) -> dict:
         clip.source_media_id = asset.media_id
         clip.status = ClipStatus.generating
         jobs.append({"clip_id": clip.clip_id, "job_id": asset.media_id})
+
+    # Real execution per scene when a generation service is present.
+    if ctx.services is not None and hasattr(ctx.services, "generate_video") and jobs:
+        from src.flow.agent import jobs as runner
+        ctx.store.save(p)  # persist pending rows before workers load
+        for clip in targets:
+            runner.submit_video(
+                ctx.services, ctx.store, p.project_id,
+                clip_id=clip.clip_id, media_id=clip.source_media_id,
+                prompt=clip.visual_prompt, duration_s=max(1, clip.effective_frames // p.fps),
+                fps=p.fps,
+            )
     return result.ok(summary=f"queued {len(jobs)} scene(s)", jobs=jobs)

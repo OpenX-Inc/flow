@@ -67,6 +67,18 @@ def generate_video(ctx: ToolContext, args: dict) -> dict:
     clip.source_media_id = asset.media_id
     clip.status = ClipStatus.generating
     asset.used_by = [clip.clip_id]
+
+    # Real execution: if a generation service is present, run the GPU job in the
+    # background and write the real URL back to the store on completion.
+    if ctx.services is not None and hasattr(ctx.services, "generate_video"):
+        from src.flow.agent import jobs
+        ctx.store.save(ctx.project)  # persist pending rows before the worker loads
+        jobs.submit_video(
+            ctx.services, ctx.store, ctx.project.project_id,
+            clip_id=clip.clip_id, media_id=asset.media_id, prompt=args["prompt"],
+            mode=args.get("mode", "t2v"), duration_s=int(args.get("duration_s", 5)),
+            fps=ctx.project.fps,
+        )
     return result.ok(summary=f"queued {args.get('mode', 't2v')} for {clip.clip_id}",
                      job_id=asset.media_id, clip_id=clip.clip_id, media_id=asset.media_id)
 
@@ -112,6 +124,12 @@ def generate_audio(ctx: ToolContext, args: dict) -> dict:
     if args.get("kind", "narration") == "narration" and not text:
         return result.error("invalid", "narration requires text or a from_scene_id with narration")
     asset = _pending_asset(ctx, MediaType.audio, model=args.get("model", "edge-tts"), prompt=text)
+    if ctx.services is not None and hasattr(ctx.services, "generate_narration") \
+            and args.get("kind", "narration") == "narration":
+        from src.flow.agent import jobs
+        ctx.store.save(ctx.project)
+        jobs.submit_narration(ctx.services, ctx.store, ctx.project.project_id,
+                              media_id=asset.media_id, text=text, voice=args.get("voice"))
     return result.ok(summary=f"queued {args.get('kind', 'narration')} audio",
                      job_id=asset.media_id, media_id=asset.media_id)
 
