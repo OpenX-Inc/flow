@@ -9,7 +9,7 @@ yields compact payloads (token hygiene for the agent context).
 from __future__ import annotations
 
 import uuid
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -19,7 +19,7 @@ def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
 
-class Easing(str, Enum):
+class Easing(StrEnum):
     linear = "linear"
     ease_in = "ease_in"
     ease_out = "ease_out"
@@ -69,7 +69,7 @@ class Effect(BaseModel):
     params: dict = {}
 
 
-class ClipStatus(str, Enum):
+class ClipStatus(StrEnum):
     pending = "pending"
     generating = "generating"
     done = "done"

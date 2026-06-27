@@ -8,7 +8,6 @@ off batch generation — concepts Palmier has no equivalent for.
 
 from __future__ import annotations
 
-from src.flow.schemas import Character
 from src.flow.store.frames import seconds_to_frames
 from src.flow.store.media import GenerationStatus, MediaAsset, MediaType
 from src.flow.store.models import Clip, ClipStatus

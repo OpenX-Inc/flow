@@ -10,7 +10,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
-
 from src.flow.schemas import Character
 from src.flow.store.frames import DEFAULT_FPS
 from src.flow.store.media import Folder, MediaAsset

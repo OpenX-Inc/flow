@@ -7,20 +7,19 @@ can back multiple clips. Deletes are soft (Trash) — see UndoEntry.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
-
 from src.flow.store.models import new_id
 
 
-class MediaType(str, Enum):
+class MediaType(StrEnum):
     video = "video"
     image = "image"
     audio = "audio"
 
 
-class GenerationStatus(str, Enum):
+class GenerationStatus(StrEnum):
     none = "none"  # imported / not generated
     generating = "generating"
     downloading = "downloading"

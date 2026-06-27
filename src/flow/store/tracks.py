@@ -7,19 +7,18 @@ Items are frame-positioned on the timeline (absolute project frames).
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
-
 from src.flow.store.models import new_id
 
 
-class TrackKind(str, Enum):
+class TrackKind(StrEnum):
     audio = "audio"  # narration, music, sfx
     text = "text"  # captions, titles, lower-thirds
 
 
-class TextPosition(str, Enum):
+class TextPosition(StrEnum):
     top = "top"
     center = "center"
     bottom = "bottom"
