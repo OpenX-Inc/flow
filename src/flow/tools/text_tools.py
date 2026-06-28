@@ -7,10 +7,10 @@ level karaoke from audio is layered on later via the transcription service.
 
 from __future__ import annotations
 
-from src.flow.store.tracks import TextPosition, TextStyle, Track, TrackItem, TrackKind
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.tracks import TextPosition, TextStyle, Track, TrackItem, TrackKind
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 def _get_or_create_text_track(project, name: str) -> Track:

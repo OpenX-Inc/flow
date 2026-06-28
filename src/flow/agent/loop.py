@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import json
 
-import src.flow.tools.all  # noqa: F401 — register all tools
-from src.flow.agent.nvidia import NvidiaClient
-from src.flow.tools.context import ToolContext, dispatch
-from src.flow.tools.registry import openai_schemas
+import flow.tools.all  # noqa: F401 — register all tools
+from flow.agent.nvidia import NvidiaClient
+from flow.tools.context import ToolContext, dispatch
+from flow.tools.registry import openai_schemas
 
 SYSTEM_RULES = (
     "You are Flow's in-app video agent. You operate the user's video project by "

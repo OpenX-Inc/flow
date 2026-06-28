@@ -7,10 +7,10 @@ the agent layer is built on top.
 
 from __future__ import annotations
 
-from src.flow.schemas import ShotList
-from src.flow.store.frames import DEFAULT_FPS
-from src.flow.store.models import Clip
-from src.flow.store.project import Project
+from flow.schemas import ShotList
+from flow.store.frames import DEFAULT_FPS
+from flow.store.models import Clip
+from flow.store.project import Project
 
 
 def import_shotlist(shotlist: ShotList, fps: int = DEFAULT_FPS) -> Project:

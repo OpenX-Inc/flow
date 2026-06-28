@@ -8,10 +8,10 @@ render+analysis service.
 
 from __future__ import annotations
 
-from src.flow.store.models import ColorGrade, Effect
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.models import ColorGrade, Effect
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 _GRADE_FIELDS = ("exposure", "temperature", "contrast", "saturation", "brightness", "lut")
 

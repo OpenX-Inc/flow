@@ -10,12 +10,13 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
-from src.flow.schemas import Character
-from src.flow.store.frames import DEFAULT_FPS
-from src.flow.store.media import Folder, MediaAsset
-from src.flow.store.models import Clip, new_id
-from src.flow.store.tracks import Track
-from src.flow.store.undo import UndoEntry
+
+from flow.schemas import Character
+from flow.store.frames import DEFAULT_FPS
+from flow.store.media import Folder, MediaAsset
+from flow.store.models import Clip, new_id
+from flow.store.tracks import Track
+from flow.store.undo import UndoEntry
 
 
 class Project(BaseModel):

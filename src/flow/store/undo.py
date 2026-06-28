@@ -11,7 +11,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
-from src.flow.store.models import new_id
+
+from flow.store.models import new_id
 
 
 class UndoEntry(BaseModel):

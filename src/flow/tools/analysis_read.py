@@ -9,9 +9,9 @@ Read-only, never gated.
 
 from __future__ import annotations
 
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 @tool("get_transcript", "The narration transcript of the current timeline, in order, "

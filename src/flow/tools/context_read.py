@@ -7,10 +7,10 @@ generatable — the IDs every other tool needs. Compact dumps omit defaults.
 
 from __future__ import annotations
 
-from src.flow.store.models import Clip
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.models import Clip
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 # Static capability matrix — what the GPU backend can do (beats Palmier by being
 # generation-native: our own Wan2.2/VACE + voice, not 3rd-party proxies).

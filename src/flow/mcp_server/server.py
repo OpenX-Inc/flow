@@ -14,15 +14,16 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import mcp.types as mcp_types
-import src.flow.tools.all  # noqa: F401 — populate the registry
 from mcp.server.lowlevel import Server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from mcp.server.transport_security import TransportSecuritySettings
-from src.flow.store.store import ProjectStore
-from src.flow.tools.context import ToolContext, dispatch
-from src.flow.tools.registry import REGISTRY
 from starlette.applications import Starlette
 from starlette.routing import Mount
+
+import flow.tools.all  # noqa: F401 — populate the registry
+from flow.store.store import ProjectStore
+from flow.tools.context import ToolContext, dispatch
+from flow.tools.registry import REGISTRY
 
 _store: ProjectStore | None = None
 _service: object | None = None
@@ -39,7 +40,7 @@ def get_service() -> object | None:
     """Lazily build the real GenerationService unless disabled."""
     global _service
     if _service is None and os.environ.get("FLOW_MCP_NO_GENERATION") != "1":
-        from src.flow.agent.generation import GenerationService
+        from flow.agent.generation import GenerationService
         _service = GenerationService()
     return _service
 

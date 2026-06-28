@@ -11,8 +11,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from sqlmodel import select
-from src.flow.store.db import ProjectRow, get_session, make_engine
-from src.flow.store.project import Project
+
+from flow.store.db import ProjectRow, get_session, make_engine
+from flow.store.project import Project
 
 
 class ProjectStore:

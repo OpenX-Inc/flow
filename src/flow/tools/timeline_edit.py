@@ -6,11 +6,11 @@ authoritative; tools accept seconds where natural and convert via the project fp
 
 from __future__ import annotations
 
-from src.flow.store.frames import seconds_to_frames
-from src.flow.store.models import Clip, ClipStatus
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.frames import seconds_to_frames
+from flow.store.models import Clip, ClipStatus
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 @tool("create_scene", "Add a new scene (pending generation) to the video track. "

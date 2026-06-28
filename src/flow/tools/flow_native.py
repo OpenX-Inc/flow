@@ -8,12 +8,12 @@ off batch generation — concepts Palmier has no equivalent for.
 
 from __future__ import annotations
 
-from src.flow.store.frames import seconds_to_frames
-from src.flow.store.media import GenerationStatus, MediaAsset, MediaType
-from src.flow.store.models import Clip, ClipStatus
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.frames import seconds_to_frames
+from flow.store.media import GenerationStatus, MediaAsset, MediaType
+from flow.store.models import Clip, ClipStatus
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 @tool("attach_character_to_scene", "Cast a character (from the project's reusable "
@@ -134,7 +134,7 @@ def start_generation(ctx: ToolContext, args: dict) -> dict:
 
     # Real execution per scene when a generation service is present.
     if ctx.services is not None and hasattr(ctx.services, "generate_video") and jobs:
-        from src.flow.agent import jobs as runner
+        from flow.agent import jobs as runner
         ctx.store.save(p)  # persist pending rows before workers load
         for clip in targets:
             runner.submit_video(

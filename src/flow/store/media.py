@@ -10,7 +10,8 @@ from __future__ import annotations
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
-from src.flow.store.models import new_id
+
+from flow.store.models import new_id
 
 
 class MediaType(StrEnum):

@@ -10,11 +10,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.flow.store.project import Project
-from src.flow.store.store import ProjectStore
-from src.flow.store.undo import UndoEntry
-from src.flow.tools import result
-from src.flow.tools.registry import REGISTRY
+from flow.store.project import Project
+from flow.store.store import ProjectStore
+from flow.store.undo import UndoEntry
+from flow.tools import result
+from flow.tools.registry import REGISTRY
 
 
 @dataclass

@@ -6,13 +6,13 @@ collections from the popped entry and persists directly.
 
 from __future__ import annotations
 
-from src.flow.schemas import Character
-from src.flow.store.media import Folder, MediaAsset
-from src.flow.store.models import Clip
-from src.flow.store.tracks import Track
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.schemas import Character
+from flow.store.media import Folder, MediaAsset
+from flow.store.models import Clip
+from flow.store.tracks import Track
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 @tool("undo", "Revert the most recent timeline edit (create/update/delete/reorder/"

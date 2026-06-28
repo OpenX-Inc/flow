@@ -7,10 +7,10 @@ reference-aware. All mutating; dispatch records undo + persists.
 
 from __future__ import annotations
 
-from src.flow.store.media import Folder
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.media import Folder
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 @tool("create_folder", "Create a media-library folder (optionally nested).",

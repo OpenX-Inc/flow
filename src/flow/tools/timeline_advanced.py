@@ -6,10 +6,10 @@ from __future__ import annotations
 
 import math
 
-from src.flow.store.models import Clip, Easing, Keyframe
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.models import Clip, Easing, Keyframe
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 _KF_PROPS = {"opacity", "volume", "scale", "x", "y", "rotation"}
 

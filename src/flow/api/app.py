@@ -9,12 +9,13 @@ import threading
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from src.flow.agent.loop import Agent
-from src.flow.agent.nvidia import NvidiaClient
-from src.flow.config import Config, load_config
-from src.flow.store.store import ProjectStore
-from src.flow.tools.context import ToolContext, dispatch
 from sse_starlette.sse import EventSourceResponse
+
+from flow.agent.loop import Agent
+from flow.agent.nvidia import NvidiaClient
+from flow.config import Config, load_config
+from flow.store.store import ProjectStore
+from flow.tools.context import ToolContext, dispatch
 
 app = FastAPI(title="Flow Agent API", version="0.3.0")
 
@@ -48,7 +49,7 @@ def _make_agent(project_id: str) -> Agent:
     cfg = get_config()
     service = None
     if os.environ.get("FLOW_NO_GENERATION") != "1":
-        from src.flow.agent.generation import GenerationService
+        from flow.agent.generation import GenerationService
         service = GenerationService()
     ctx = ToolContext(project=project, store=get_store(), services=service,
                       can_generate=cfg.billing.can_generate)

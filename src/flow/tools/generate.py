@@ -9,12 +9,12 @@ exception — it lands a ready asset immediately.
 
 from __future__ import annotations
 
-from src.flow.store.frames import seconds_to_frames
-from src.flow.store.media import GenerationStatus, MediaAsset, MediaType
-from src.flow.store.models import Clip, ClipStatus
-from src.flow.tools import result
-from src.flow.tools.context import ToolContext
-from src.flow.tools.registry import tool
+from flow.store.frames import seconds_to_frames
+from flow.store.media import GenerationStatus, MediaAsset, MediaType
+from flow.store.models import Clip, ClipStatus
+from flow.tools import result
+from flow.tools.context import ToolContext
+from flow.tools.registry import tool
 
 
 def _pending_asset(ctx: ToolContext, mtype: MediaType, *, model: str, prompt: str,
@@ -71,7 +71,7 @@ def generate_video(ctx: ToolContext, args: dict) -> dict:
     # Real execution: if a generation service is present, run the GPU job in the
     # background and write the real URL back to the store on completion.
     if ctx.services is not None and hasattr(ctx.services, "generate_video"):
-        from src.flow.agent import jobs
+        from flow.agent import jobs
         ctx.store.save(ctx.project)  # persist pending rows before the worker loads
         jobs.submit_video(
             ctx.services, ctx.store, ctx.project.project_id,
@@ -126,7 +126,7 @@ def generate_audio(ctx: ToolContext, args: dict) -> dict:
     asset = _pending_asset(ctx, MediaType.audio, model=args.get("model", "edge-tts"), prompt=text)
     if ctx.services is not None and hasattr(ctx.services, "generate_narration") \
             and args.get("kind", "narration") == "narration":
-        from src.flow.agent import jobs
+        from flow.agent import jobs
         ctx.store.save(ctx.project)
         jobs.submit_narration(ctx.services, ctx.store, ctx.project.project_id,
                               media_id=asset.media_id, text=text, voice=args.get("voice"))

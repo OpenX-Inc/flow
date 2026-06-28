@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import threading
 
-from src.flow.store.media import GenerationStatus
-from src.flow.store.models import ClipStatus
+from flow.store.media import GenerationStatus
+from flow.store.models import ClipStatus
 
 
 def _finish(store, project_id, *, media_id=None, clip_id=None, url=None,
