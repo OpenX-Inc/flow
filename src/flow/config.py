@@ -49,12 +49,40 @@ class SchedulerConfig(BaseModel):
     auto_generate_topics: bool = True
 
 
+class AgentConfig(BaseModel):
+    """The in-app video agent (LLM that drives the tools)."""
+
+    provider: str = "nvidia"
+    base_url: str = "https://integrate.api.nvidia.com/v1"
+    api_key: str = ""  # falls back to FLOW_NVIDIA_API_KEY env
+    model: str = "kimi"  # alias -> moonshotai/kimi-k2.6
+    max_iterations: int = 12
+
+
+class MCPConfig(BaseModel):
+    """The MCP server that exposes the tools to external agents."""
+
+    enabled: bool = True
+    host: str = "127.0.0.1"
+    port: int = 8765
+    token: str = ""  # bearer; falls back to FLOW_MCP_TOKEN env
+
+
+class BillingConfig(BaseModel):
+    """Generation gating (credits/plan)."""
+
+    can_generate: bool = True
+
+
 class Config(BaseModel):
     llm: LLMConfig = LLMConfig()
     gpu_backend: GPUBackendConfig = GPUBackendConfig()
     tts: TTSConfig = TTSConfig()
     publish: PublishConfig = PublishConfig()
     scheduler: SchedulerConfig = SchedulerConfig()
+    agent: AgentConfig = AgentConfig()
+    mcp: MCPConfig = MCPConfig()
+    billing: BillingConfig = BillingConfig()
     output_dir: str = "storage/outputs"
     aspect_ratio: str = "9:16"  # 9:16, 16:9
     generation_mode: str = "sequential"  # sequential, parallel_flf2v, pipelined_flf2v
