@@ -16,6 +16,7 @@ dependencies = [
     "rich>=14.0.0",
     "tomli>=2.2.0; python_version < '3.11'",
     "sqlmodel>=0.0.22",
+    "mcp>=1.2.0",
 ]
 
 [project.optional-dependencies]
