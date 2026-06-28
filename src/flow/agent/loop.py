@@ -48,24 +48,27 @@ class Agent:
         self.ctx = ctx
         self.max_iterations = max_iterations
 
-    def run(self, user_message: str, history: list[dict] | None = None) -> dict:
-        """Run one user turn to completion. Returns reply + trace."""
+    def run_stream(self, user_message: str, history: list[dict] | None = None):
+        """Run one turn, yielding events as they happen (for SSE).
+
+        Events: {type: assistant|tool_call|reply, ...}. Final event is 'reply'.
+        """
         messages: list[dict] = [{"role": "system", "content": build_system_prompt(self.ctx)}]
         messages += history or []
         messages.append({"role": "user", "content": user_message})
-
         tools = openai_schemas()
-        calls_made: list[dict] = []
 
         for _ in range(self.max_iterations):
             resp = self.client.chat(messages, tools=tools)
             msg = resp["choices"][0]["message"]
             messages.append(msg)
-
             tool_calls = msg.get("tool_calls") or []
+
+            if msg.get("content") and tool_calls:
+                yield {"type": "assistant", "content": msg["content"]}
             if not tool_calls:
-                return {"reply": msg.get("content", ""), "tool_calls": calls_made,
-                        "messages": messages}
+                yield {"type": "reply", "content": msg.get("content", "")}
+                return
 
             for tc in tool_calls:
                 name = tc["function"]["name"]
@@ -74,12 +77,19 @@ class Agent:
                 except json.JSONDecodeError:
                     args = {}
                 res = dispatch(self.ctx, name, args)
-                calls_made.append({"tool": name, "args": args, "result": res})
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc["id"],
-                    "content": json.dumps(res),
-                })
+                yield {"type": "tool_call", "tool": name, "args": args, "result": res}
+                messages.append({"role": "tool", "tool_call_id": tc["id"],
+                                 "content": json.dumps(res)})
 
-        return {"reply": "(stopped: max tool iterations reached)",
-                "tool_calls": calls_made, "messages": messages}
+        yield {"type": "reply", "content": "(stopped: max tool iterations reached)"}
+
+    def run(self, user_message: str, history: list[dict] | None = None) -> dict:
+        """Run one user turn to completion (collects the stream)."""
+        calls_made: list[dict] = []
+        reply = ""
+        for ev in self.run_stream(user_message, history):
+            if ev["type"] == "tool_call":
+                calls_made.append(ev)
+            elif ev["type"] == "reply":
+                reply = ev["content"]
+        return {"reply": reply, "tool_calls": calls_made}
