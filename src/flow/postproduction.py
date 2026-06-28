@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import tempfile
 from pathlib import Path
 
@@ -45,35 +44,14 @@ class PostProduction:
         return output_path
 
     def _generate_tts(self, text: str) -> Path:
-        """Generate TTS audio from narration text."""
-        output_path = self.work_dir / "narration.mp3"
+        """Generate TTS audio from narration text via the configured provider."""
+        from flow.tts import get_tts_provider
 
-        if self.config.tts.provider == "edge":
-            asyncio.run(self._edge_tts(text, output_path))
-        elif self.config.tts.provider == "miso":
-            from flow.tts_miso import generate_speech
-
-            wav_path = self.work_dir / "narration.wav"
-            generate_speech(
-                text=text,
-                output_path=wav_path,
-                config=self.config.tts,
-                gpu_backend_url=self.config.gpu_backend.url,
-            )
-            output_path = wav_path
-        else:
-            raise NotImplementedError(
-                f"TTS provider '{self.config.tts.provider}' not supported"
-            )
-
-        return output_path
-
-    async def _edge_tts(self, text: str, output_path: Path) -> None:
-        """Generate TTS using Edge TTS (free, Microsoft)."""
-        import edge_tts
-
-        communicate = edge_tts.Communicate(text, self.config.tts.voice)
-        await communicate.save(str(output_path))
+        provider = get_tts_provider(
+            self.config.tts, gpu_backend_url=self.config.gpu_backend.url
+        )
+        output_path = self.work_dir / f"narration.{provider.output_ext}"
+        return provider.synthesize(text, output_path)
 
     def _generate_subtitles(self, shot_list: ShotList) -> Path:
         """Generate SRT subtitles from scene narration segments."""
