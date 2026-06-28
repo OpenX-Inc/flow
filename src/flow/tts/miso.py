@@ -51,13 +51,17 @@ class MisoTTSProvider(TTSProvider):
         from generator import Segment, load_miso_8b
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        generator = load_miso_8b(device=device, model_path_or_repo_id=self.config.miso_model)
+        generator = load_miso_8b(
+            device=device, model_path_or_repo_id=self.config.miso_model
+        )
 
         context: list = []
         if ref and Path(ref).exists():
             ref_audio, sr = torchaudio.load(ref)
             if sr != generator.sample_rate:
-                ref_audio = torchaudio.functional.resample(ref_audio, sr, generator.sample_rate)
+                ref_audio = torchaudio.functional.resample(
+                    ref_audio, sr, generator.sample_rate
+                )
             context = [Segment(text=transcript, audio=ref_audio.squeeze())]
 
         audio = generator.generate(
@@ -65,7 +69,9 @@ class MisoTTSProvider(TTSProvider):
             context=context,
             max_audio_length_ms=len(text) * 100,
         )
-        torchaudio.save(str(output_path), audio.unsqueeze(0).cpu(), generator.sample_rate)
+        torchaudio.save(
+            str(output_path), audio.unsqueeze(0).cpu(), generator.sample_rate
+        )
         return output_path
 
     def _via_backend(
