@@ -29,7 +29,9 @@ resolution = "480p"  # 480p or 720p
 clip_duration = 5  # seconds per clip
 
 [tts]
-# Supported: edge (free), miso (natural, needs GPU), elevenlabs
+# Text-to-speech provider. Built-ins: edge (free, online, no cloning),
+# miso (MisoTTS — natural voice + one-shot cloning, needs a GPU).
+# Add your own by subclassing flow.tts.TTSProvider and register_provider().
 provider = "edge"
 voice = "en-US-ChristopherNeural"
 api_key = ""  # Only needed for elevenlabs
@@ -37,6 +39,9 @@ api_key = ""  # Only needed for elevenlabs
 # MisoTTS settings (only when provider = "miso")
 miso_model = "MisoLabs/MisoTTS"
 miso_precision = "int8"  # bf16, int8, int4 (int8 = 16GB VRAM)
+# Dedicated MisoTTS HTTP endpoint (POST /tts/generate). Leave empty to run the
+# model locally, or to reuse gpu_backend.url.
+miso_endpoint = ""
 voice_sample = ""  # Path to reference audio for voice cloning (e.g., "config/voices/narrator.wav")
 voice_transcript = ""  # Transcript of the voice sample
 
