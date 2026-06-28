@@ -53,6 +53,27 @@ cron = "0 2 * * *"  # Daily at 2am UTC
 topics_file = ""  # Path to file with one topic per line (optional)
 auto_generate_topics = true
 
+[agent]
+# The in-app video agent — an LLM that operates the project through 41 tools.
+# Served by the NVIDIA build API (OpenAI-compatible). Run with: `flow agent`
+provider = "nvidia"
+base_url = "https://integrate.api.nvidia.com/v1"
+api_key = ""  # or set FLOW_NVIDIA_API_KEY
+model = "kimi"  # alias -> moonshotai/kimi-k2.6; see all via GET /agent/models
+max_iterations = 12  # safety cap on the tool-calling loop
+
+[mcp]
+# MCP server exposing the same tools to external agents (Claude Code/Cursor).
+# Run with: `flow mcp`  (connect a client to http://127.0.0.1:8765/mcp)
+enabled = true
+host = "127.0.0.1"  # keep on loopback
+port = 8765
+token = ""  # bearer auth; or set FLOW_MCP_TOKEN
+
+[billing]
+# Gate generation tools (video/voice). Set false to disable generation.
+can_generate = true
+
 # General settings
 output_dir = "storage/outputs"
 aspect_ratio = "9:16"  # 9:16 for shorts, 16:9 for long-form

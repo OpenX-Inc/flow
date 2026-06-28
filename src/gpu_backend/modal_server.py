@@ -232,7 +232,11 @@ class WanServer:
             num_frames=num_frames, num_inference_steps=num_inference_steps,
         )
         if reference_b64:
-            ref = Image.open(io.BytesIO(base64.b64decode(reference_b64))).convert("RGB").resize((width, height))
+            ref = (
+                Image.open(io.BytesIO(base64.b64decode(reference_b64)))
+                .convert("RGB")
+                .resize((width, height))
+            )
             kwargs["reference_images"] = [ref]
         with torch.inference_mode():
             output = self._vace(**kwargs)

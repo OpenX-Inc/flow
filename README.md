@@ -142,6 +142,33 @@ python -m flow generate --topic "The history of the internet" --duration 60
 python -m flow schedule
 ```
 
+## Agentic Editing (new in 0.3)
+
+Beyond the headless pipeline, Flow ships an **in-app video agent** — an LLM that
+operates your project through 41 tools (plan scenes, generate/regenerate, reorder,
+trim, keyframes, captions, color, cast characters, narrate, batch-generate…). The
+ordered scenes *are* the timeline; ffmpeg assembles them with narration/caption
+tracks.
+
+```bash
+# Run the agent API (default model: kimi via NVIDIA build)
+export FLOW_NVIDIA_API_KEY="nvapi-..."
+flow agent                       # POST /agent/chat (SSE), GET /agent/models, POST /agent/undo
+
+# Or expose the same tools to external coding agents over MCP
+export FLOW_MCP_TOKEN="your-secret"
+flow mcp                         # http://127.0.0.1:8765/mcp  (Claude Code, Cursor, Codex)
+```
+
+- **Two surfaces, one tool registry:** the in-app agent (kimi) and any MCP client
+  drive the *same* tools, so behavior never drifts.
+- **State** lives in a `store` (SQLite by default; Postgres via `FLOW_DATABASE_URL`).
+- **Connect Claude Code:** `claude mcp add --transport http flow http://127.0.0.1:8765/mcp`
+- Configure under `[agent]` / `[mcp]` / `[billing]` — see `config/config.example.toml`.
+
+> Video generation requires a GPU backend (see `[gpu_backend]`); narration runs
+> free via edge-tts. The agent + MCP server are dependency-light and self-hostable.
+
 ## Self-Hosted vs OpenX Flow (Cloud)
 
 | | Self-Hosted (this repo) | OpenX Flow (managed) |
@@ -178,6 +205,7 @@ python -m flow schedule
 - [ ] AWS + GCP backend support
 - [ ] Quality validation and scene regeneration
 - [ ] Fine-tuning pipeline for brand-specific style
+- [x] Agentic editing — in-app agent (kimi) + MCP server over the tool registry
 - [ ] OpenX Flow managed service
 
 ## Contributing

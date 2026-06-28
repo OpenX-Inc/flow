@@ -72,5 +72,32 @@ def schedule(
     scheduler.run()
 
 
+@app.command()
+def agent(
+    host: str = typer.Option("127.0.0.1", help="Bind host"),
+    port: int = typer.Option(8770, help="Bind port"),
+) -> None:
+    """Run the agentic video-editing API (kimi agent: /agent/chat, /models, /undo)."""
+    from flow.api.app import run
+
+    console.print(f"[bold green]Flow[/] — Agent API on http://{host}:{port}")
+    console.print("  Endpoints: POST /agent/chat (SSE), GET /agent/models, POST /agent/undo")
+    run(host=host, port=port)
+
+
+@app.command()
+def mcp(
+    host: str = typer.Option("127.0.0.1", help="Bind host (loopback recommended)"),
+    port: int = typer.Option(8765, help="Bind port"),
+) -> None:
+    """Run the MCP server exposing all tools to external agents (Claude Code/Cursor)."""
+    from flow.mcp_server.server import run
+
+    console.print(f"[bold green]Flow[/] — MCP server on http://{host}:{port}/mcp")
+    console.print("  Set FLOW_MCP_TOKEN for bearer auth; "
+                  "FLOW_MCP_PROJECT_ID for the active project")
+    run(host=host, port=port)
+
+
 if __name__ == "__main__":
     app()
