@@ -30,6 +30,7 @@ class TTSConfig(BaseModel):
     api_key: str = ""
     miso_model: str = "MisoLabs/MisoTTS"
     miso_precision: str = "int8"  # bf16, int8, int4
+    miso_endpoint: str = ""  # MisoTTS HTTP endpoint; falls back to gpu_backend.url
     voice_sample: str = ""  # path to reference audio for cloning
     voice_transcript: str = ""  # transcript of the voice sample
 

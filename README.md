@@ -116,6 +116,45 @@ The orchestrator runs on any cheap VPS. The GPU backend is a separate service th
 | GCP (a2/a3) | A100, H100 | ~$2-$4/hr |
 | Self-hosted 8× MI300X | MI300X (192GB each) | ~$16-$24/hr (node) |
 
+## Text-to-Speech & Voice Cloning
+
+Narration is produced by a pluggable TTS layer. Pick a provider in config:
+
+| Provider | Cost | Cloning | Notes |
+|----------|------|---------|-------|
+| `edge` | Free | ❌ | Microsoft online voices, CPU-only. Default. |
+| `miso` | GPU | ✅ | [MisoTTS](https://huggingface.co/MisoLabs/MisoTTS) — natural speech + one-shot voice cloning. Runs locally or via an HTTP endpoint. |
+
+```toml
+[tts]
+provider = "miso"
+miso_endpoint = "https://your-gpu-host/"   # or leave empty to reuse gpu_backend.url / run locally
+voice_sample = "config/voices/narrator.wav" # reference clip to clone
+voice_transcript = "Transcript of the sample."
+```
+
+Bring your own backend without forking — subclass `TTSProvider` and register it:
+
+```python
+from pathlib import Path
+from flow.tts import TTSProvider, register_provider
+
+@register_provider
+class MyTTS(TTSProvider):
+    name = "mytts"
+    output_ext = "wav"
+    supports_cloning = True
+
+    def synthesize(self, text, output_path, *, voice=None,
+                   reference_audio=None, reference_transcript=None):
+        ...  # write audio to output_path
+        return Path(output_path)
+```
+
+Providers are stateless — they take text (and optionally a voice name or a
+reference clip) and return an audio file. Nothing about your deployment leaks
+into the core.
+
 ## Quick Start
 
 > 🚧 Under active development. Pipeline implementation coming soon.
