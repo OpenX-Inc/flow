@@ -157,7 +157,7 @@ into the core.
 
 ## Quick Start
 
-> 🚧 Under active development. Pipeline implementation coming soon.
+> The pipeline is implemented and benchmarked end-to-end — see [`benchmarks/`](benchmarks/) for real generated films and cost data. The managed cloud (**OpenX Flow**) is in pre-launch.
 
 ```bash
 # Clone
@@ -233,19 +233,19 @@ flow mcp                         # http://127.0.0.1:8765/mcp  (Claude Code, Curs
 
 ## Roadmap
 
-- [ ] Core pipeline (writer → generator → assembly)
-- [ ] GPU backend (Modal deployment with Wan 2.2)
-- [ ] Scene chaining with first/last frame conditioning
-- [ ] Character bank with reference images
-- [ ] TTS + subtitle integration
-- [ ] Auto-publishing to TikTok/YouTube/Instagram
-- [ ] Scheduler for autonomous daily generation
-- [ ] MI300X multi-GPU support via xDiT
-- [ ] AWS + GCP backend support
-- [ ] Quality validation and scene regeneration
-- [ ] Fine-tuning pipeline for brand-specific style
+- [x] Core pipeline (writer → generator → assembly)
+- [x] GPU backend (Modal deployment with Wan 2.2)
+- [x] Scene chaining with first/last frame conditioning
+- [x] Character bank with reference images
+- [x] TTS + subtitle integration
+- [x] Auto-publishing — TikTok + YouTube (Instagram in progress)
+- [x] Scheduler for autonomous daily generation
+- [x] Quality validation and scene regeneration
 - [x] Agentic editing — in-app agent (kimi) + MCP server over the tool registry
-- [ ] OpenX Flow managed service
+- [~] MI300X multi-GPU support via xDiT — implemented, pending hardware validation
+- [ ] AWS + GCP first-class backend support
+- [ ] Fine-tuning pipeline for brand-specific style
+- [~] OpenX Flow managed service — in pre-launch
 
 ## Contributing
 
