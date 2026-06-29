@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/OpenX-Inc/flow/compare/v0.3.0...v0.4.0) (2026-06-29)
+
+
+### Features
+
+* **tts:** add pluggable TTSProvider interface ([971111e](https://github.com/OpenX-Inc/flow/commit/971111e1478ca762fdc341a1a530d59da7482baf))
+* **tts:** add TTSConfig.miso_endpoint for a dedicated MisoTTS endpoint ([a41c56d](https://github.com/OpenX-Inc/flow/commit/a41c56df4757082014c1c0a65fdfb8bdc179a56f))
+* **tts:** EdgeTTSProvider (free Microsoft voices, no cloning) ([ce44371](https://github.com/OpenX-Inc/flow/commit/ce44371fd5ec134fe5f9553f11c3c89a5d831e0a))
+* **tts:** MisoTTSProvider (voice cloning; local GPU or HTTP endpoint) ([77e1614](https://github.com/OpenX-Inc/flow/commit/77e161473a5877dd5da53d0eba0c815200864858))
+* **tts:** pluggable TTS providers + voice cloning ([dfd6964](https://github.com/OpenX-Inc/flow/commit/dfd69640a309609d1807be2812f21804c9f4e7e7))
+* **tts:** provider registry — get_tts_provider/register_provider/available_providers ([92573c5](https://github.com/OpenX-Inc/flow/commit/92573c5986aeab7d5d79ab22844621bdbf56542e))
+
+
+### Documentation
+
+* **tts:** document miso_endpoint + provider options in config.example.toml ([023a336](https://github.com/OpenX-Inc/flow/commit/023a3368a5f42aa228246e3f438020e272c6ce5d))
+* **tts:** README section on the pluggable TTS layer + voice cloning + custom providers ([fbbf486](https://github.com/OpenX-Inc/flow/commit/fbbf4860aacde5b91d122d20655627ed6041ce1f))
+
 ## [0.3.0](https://github.com/OpenX-Inc/flow/compare/v0.2.0...v0.3.0) (2026-06-28)
 
 
