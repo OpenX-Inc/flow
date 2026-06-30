@@ -150,15 +150,21 @@ class Generator:
             resp.raise_for_status()
             result = resp.json()
 
-        # Save clip
+        # Save clip — the backend may return base64 inline (serverless, e.g.
+        # Modal) or a URL (a file-serving backend). Support both so there is one
+        # consumer contract regardless of where the backend is deployed.
         clip_path = self.clip_dir / f"scene_{scene_id:03d}.mp4"
-        video_data = self._download(result["video_url"])
+        video_data = self._fetch_asset(result, "video")
+        if video_data is None:
+            raise RuntimeError(
+                "GPU backend returned no video (expected 'video_b64' or 'video_url')"
+            )
         clip_path.write_bytes(video_data)
 
-        # Save last frame for next scene's conditioning
+        # Save last frame for next scene's conditioning.
         last_frame_path_out = self.clip_dir / f"scene_{scene_id:03d}_last.png"
-        if "last_frame_url" in result:
-            frame_data = self._download(result["last_frame_url"])
+        frame_data = self._fetch_asset(result, "last_frame")
+        if frame_data is not None:
             last_frame_path_out.write_bytes(frame_data)
         else:
             self._extract_last_frame(clip_path, last_frame_path_out)
@@ -176,6 +182,29 @@ class Generator:
             resp = client.get(url)
             resp.raise_for_status()
             return resp.content
+
+    def _fetch_asset(self, result: dict, name: str) -> bytes | None:
+        """Materialise an output asset from the backend response.
+
+        Backends may return the asset inline as base64 (``<name>_b64`` — the
+        norm for serverless backends like Modal, whose containers are ephemeral)
+        or as a URL (``<name>_url`` — a file-serving backend). Relative URLs are
+        resolved against the backend base URL. Returns ``None`` when neither key
+        is present (e.g. no last frame).
+        """
+        b64 = result.get(f"{name}_b64")
+        if b64:
+            import base64
+
+            return base64.b64decode(b64)
+        url = result.get(f"{name}_url")
+        if url:
+            full = (
+                url if url.startswith("http")
+                else f"{self.backend_url.rstrip('/')}{url}"
+            )
+            return self._download(full)
+        return None
 
     def _encode_image(self, path: str) -> str:
         """Encode image to base64 for API payload."""
