@@ -76,6 +76,17 @@ class KeyframeGenerator:
             )
         return prompts
 
+    def generate_keyframe(self, prompt: str, output_path: Path) -> Path:
+        """Generate a single boundary keyframe image (public, scene-level API).
+
+        Lets an interactive caller produce one keyframe at a time (e.g. to pin a
+        scene boundary, preview it, or regenerate it) without running the full
+        :meth:`generate_keyframes` pass.
+        """
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        self._generate_image(prompt, output_path)
+        return output_path
+
     def _generate_image(self, prompt: str, output_path: Path) -> None:
         """Generate a single keyframe image via GPU backend."""
         with httpx.Client(timeout=120) as client:
