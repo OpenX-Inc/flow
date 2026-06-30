@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/OpenX-Inc/flow/compare/v0.4.0...v0.5.0) (2026-06-30)
+
+
+### Features
+
+* **engine:** scene-level generation API (generate_clip / generate_keyframe) ([a31a061](https://github.com/OpenX-Inc/flow/commit/a31a061f10397c24ff12d894c529c1178915d766))
+* **engine:** scene-level generation API (generate_clip / generate_keyframe) ([a2452ad](https://github.com/OpenX-Inc/flow/commit/a2452ad4775d9b8215bf45aff5d4f6fb5c457efc))
+
+
+### Documentation
+
+* correct roadmap to reflect shipped pipeline ([3d1fc2c](https://github.com/OpenX-Inc/flow/commit/3d1fc2c7b1450abc3ca324cf8f060e3831cb2f17))
+* correct roadmap to reflect what's actually shipped ([97620e2](https://github.com/OpenX-Inc/flow/commit/97620e22bc687a6d0004d7893048fa57d9aca154))
+
 ## [0.4.0](https://github.com/OpenX-Inc/flow/compare/v0.3.0...v0.4.0) (2026-06-29)
 
 
