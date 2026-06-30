@@ -23,10 +23,24 @@ model = "gpt-4o-mini"
 [gpu_backend]
 # Supported: modal, runpod, self-hosted
 provider = "modal"
-url = ""  # URL of your GPU backend inference server
+url = ""  # base URL of your deployed GPU backend (e.g. https://you--flow-gpu-backend.modal.run)
 api_key = ""
 resolution = "480p"  # 480p or 720p
 clip_duration = 5  # seconds per clip
+
+# `flow deploy` defaults — deploy the GPU backend as a NAMED instance.
+# A token alone can't generate; you must deploy the open-source backend into
+# your account first, which yields the `url` above. Deploy several named
+# instances (e.g. an A100 pool and an H100 pool) and point `url` at one.
+#   flow deploy modal --name flow-gpu-a100 --gpu A100-80GB
+[deploy]
+provider = "modal"            # modal (automated) | aws | gcp (scaffolded)
+name = "flow-gpu-backend"     # instance name -> Modal app + subdomain label
+gpu = "A100-80GB"             # e.g. A100-80GB, H100
+model_t2v = "Wan-AI/Wan2.2-T2V-A14B-Diffusers"
+model_i2v = "Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+region = ""                   # AWS/GCP only
+scaledown_window = 300        # seconds idle before Modal scales to zero
 
 [tts]
 # Text-to-speech provider. Built-ins: edge (free, online, no cloning),

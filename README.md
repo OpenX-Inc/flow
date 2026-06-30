@@ -116,6 +116,33 @@ The orchestrator runs on any cheap VPS. The GPU backend is a separate service th
 | GCP (a2/a3) | A100, H100 | ~$2-$4/hr |
 | Self-hosted 8× MI300X | MI300X (192GB each) | ~$16-$24/hr (node) |
 
+## Deploy the GPU Backend
+
+Video generation needs a GPU backend — the open-source Wan server in
+[`src/gpu_backend/`](src/gpu_backend/). It exposes one base64 HTTP contract
+(`POST /generate/t2v|i2v|flf2v`, `GET /health`) that the pipeline consumes,
+whether it runs on Modal, RunPod, a self-hosted box, or your own cloud.
+
+> A provider token or API key **is not enough on its own** — the backend has to
+> be *deployed* into your account first. That deploy is what produces the
+> endpoint URL your jobs route to.
+
+```bash
+pip install "flow[gpu]" modal && modal token new   # one-time Modal auth
+
+# Deploy the backend as a NAMED instance (deploy several — A100 pool, H100 pool…)
+flow deploy modal --name flow-gpu-a100 --gpu A100-80GB
+# → prints the base URL, e.g. https://<workspace>--flow-gpu-a100.modal.run
+```
+
+Put that URL in `[gpu_backend].url`. Defaults live in the `[deploy]` section of
+your config; CLI flags override them. `flow deploy aws` / `flow deploy gcp` print
+the concrete manual steps (first-class automation is on the roadmap — they never
+fake a deployment).
+
+**Self-hosted / RunPod:** run the same FastAPI app directly
+(`uvicorn gpu_backend.server:app`, GPU host) and point `[gpu_backend].url` at it.
+
 ## Text-to-Speech & Voice Cloning
 
 Narration is produced by a pluggable TTS layer. Pick a provider in config:
