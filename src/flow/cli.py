@@ -99,5 +99,65 @@ def mcp(
     run(host=host, port=port)
 
 
+@app.command()
+def deploy(
+    provider: str = typer.Argument(
+        None, help="Target provider: modal | aws | gcp (default from config)"
+    ),
+    name: str = typer.Option(None, help="Instance name — deploy several, named"),
+    gpu: str = typer.Option(None, help="GPU type, e.g. A100-80GB / H100"),
+    model_t2v: str = typer.Option(None, help="T2V model id"),
+    model_i2v: str = typer.Option(None, help="I2V model id"),
+    region: str = typer.Option(None, help="Region (AWS/GCP)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Deploy the GPU backend to a provider as a named compute instance.
+
+    A token alone can't generate — this deploys the open-source Wan backend into
+    your account and reports the endpoint URL to register. CLI flags override the
+    deploy section of your config file.
+    """
+    from flow.config import load_config
+    from flow.deploy import DeploySpec, available_providers, get_deployer
+
+    d = load_config(config_path).deploy
+    provider = provider or d.provider
+    spec = DeploySpec(
+        name=name or d.name,
+        gpu=gpu or d.gpu,
+        model_t2v=model_t2v or d.model_t2v,
+        model_i2v=model_i2v or d.model_i2v,
+        region=region or d.region,
+        scaledown_window=d.scaledown_window,
+    )
+
+    try:
+        deployer = get_deployer(provider)
+    except ValueError:
+        console.print(
+            f"[red]Unknown provider '{provider}'[/] — "
+            f"available: {', '.join(available_providers())}"
+        )
+        raise typer.Exit(1) from None
+
+    console.print(
+        f"[bold green]Flow[/] — deploying '{spec.name}' to "
+        f"[cyan]{provider}[/] (gpu={spec.gpu})"
+    )
+    result = deployer.deploy(spec)
+
+    if result.status == "deployed":
+        console.print(f"[bold green]✓[/] deployed [bold]{result.name}[/]")
+        if result.endpoint_url:
+            console.print(f"  endpoint: [cyan]{result.endpoint_url}[/]")
+        console.print(f"  {result.detail}")
+    elif result.status == "manual_required":
+        console.print(f"[yellow]⚠ manual steps required[/] for {provider}:")
+        console.print(f"  {result.detail}")
+    else:
+        console.print(f"[red]✗ deploy failed:[/] {result.detail}")
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()

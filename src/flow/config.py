@@ -75,6 +75,18 @@ class BillingConfig(BaseModel):
     can_generate: bool = True
 
 
+class DeployConfig(BaseModel):
+    """Defaults for ``flow deploy`` (deploy the GPU backend as a named instance)."""
+
+    provider: str = "modal"  # modal, aws, gcp
+    name: str = "flow-gpu-backend"  # instance name (deploy several, named)
+    gpu: str = "A100-80GB"
+    model_t2v: str = "Wan-AI/Wan2.2-T2V-A14B-Diffusers"
+    model_i2v: str = "Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+    region: str = ""  # AWS/GCP
+    scaledown_window: int = 300  # seconds idle before Modal scales to zero
+
+
 class Config(BaseModel):
     llm: LLMConfig = LLMConfig()
     gpu_backend: GPUBackendConfig = GPUBackendConfig()
@@ -84,6 +96,7 @@ class Config(BaseModel):
     agent: AgentConfig = AgentConfig()
     mcp: MCPConfig = MCPConfig()
     billing: BillingConfig = BillingConfig()
+    deploy: DeployConfig = DeployConfig()
     output_dir: str = "storage/outputs"
     aspect_ratio: str = "9:16"  # 9:16, 16:9
     generation_mode: str = "sequential"  # sequential, parallel_flf2v, pipelined_flf2v
