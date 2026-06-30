@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/OpenX-Inc/flow/compare/v0.6.0...v0.7.0) (2026-06-30)
+
+
+### Features
+
+* **gpu-backend:** unified base64 contract + parameterized deployer for named instances ([#38](https://github.com/OpenX-Inc/flow/issues/38)) ([1dd0b9d](https://github.com/OpenX-Inc/flow/commit/1dd0b9d2dd96902d51704f87841e6a785c72619e))
+
 ## [0.6.0](https://github.com/OpenX-Inc/flow/compare/v0.5.0...v0.6.0) (2026-06-30)
 
 
