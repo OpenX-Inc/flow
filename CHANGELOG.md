@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/OpenX-Inc/flow/compare/v0.5.0...v0.6.0) (2026-06-30)
+
+
+### Features
+
+* **agent:** token-streaming loop + create_character tool ([774edea](https://github.com/OpenX-Inc/flow/commit/774edea2076b938f1e7347054e77d44f6ee162f7))
+* **agent:** token-streaming loop + create_character tool ([59ec578](https://github.com/OpenX-Inc/flow/commit/59ec5783cf608fe918ba87d58028aa9462f60f58))
+
 ## [0.5.0](https://github.com/OpenX-Inc/flow/compare/v0.4.0...v0.5.0) (2026-06-30)
 
 
