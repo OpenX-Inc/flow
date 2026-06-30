@@ -50,6 +50,16 @@ class ModalDeployer(Deployer):
             "FLOW_MODEL_I2V": spec.model_i2v,
             "FLOW_GPU_SCALEDOWN": str(spec.scaledown_window),
         }
+        # Per-invocation Modal auth, if provided as args, scoped to THIS
+        # subprocess only (never the ambient env) — so a shared host can deploy
+        # for many accounts concurrently. If omitted, ambient modal auth
+        # (~/.modal.toml or existing MODAL_TOKEN_* env) is used as before.
+        creds = spec.credentials or {}
+        if creds.get("token_id"):
+            env["MODAL_TOKEN_ID"] = creds["token_id"]
+        if creds.get("token_secret"):
+            env["MODAL_TOKEN_SECRET"] = creds["token_secret"]
+
         try:
             proc = subprocess.run(
                 ["modal", "deploy", str(server)],

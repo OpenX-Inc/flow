@@ -31,6 +31,40 @@ def test_modal_deploy_fails_cleanly_without_cli(monkeypatch):
     assert "modal CLI not found" in res.detail
 
 
+def test_modal_deploy_injects_token_per_invocation(monkeypatch):
+    """Credentials passed as args land in the subprocess env only, never os.environ."""
+    import os
+    import types
+
+    monkeypatch.setattr(
+        "flow.deploy.modal_deploy.shutil.which", lambda _: "/usr/bin/modal"
+    )
+    captured: dict = {}
+
+    def fake_run(cmd, env=None, **kw):
+        captured["env"] = env
+        return types.SimpleNamespace(
+            returncode=0,
+            stdout="Created web endpoint => https://ws--a100.modal.run",
+            stderr="",
+        )
+
+    monkeypatch.setattr("flow.deploy.modal_deploy.subprocess.run", fake_run)
+
+    res = ModalDeployer().deploy(
+        DeploySpec(name="a100", credentials={"token_id": "ti", "token_secret": "ts"})
+    )
+
+    assert res.status == "deployed"
+    assert res.endpoint_url == "https://ws--a100.modal.run"
+    # Token is scoped to the deploy subprocess...
+    assert captured["env"]["MODAL_TOKEN_ID"] == "ti"
+    assert captured["env"]["MODAL_TOKEN_SECRET"] == "ts"
+    assert captured["env"]["FLOW_GPU_APP_NAME"] == "a100"
+    # ...and never leaks into the ambient process env.
+    assert "MODAL_TOKEN_ID" not in os.environ
+
+
 def test_aws_gcp_are_honest_scaffolds():
     for provider in ("aws", "gcp"):
         res = get_deployer(provider).deploy(DeploySpec(name=f"{provider}-inst"))
