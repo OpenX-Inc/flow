@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/OpenX-Inc/flow/compare/v0.7.0...v0.8.0) (2026-06-30)
+
+
+### Features
+
+* **deploy:** pass Modal credentials as args (per-invocation, not ambient env) ([#40](https://github.com/OpenX-Inc/flow/issues/40)) ([96d1d8a](https://github.com/OpenX-Inc/flow/commit/96d1d8ac4bb7258035bd08fa6470dbb8e191d99f))
+
 ## [0.7.0](https://github.com/OpenX-Inc/flow/compare/v0.6.0...v0.7.0) (2026-06-30)
 
 
