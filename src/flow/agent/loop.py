@@ -51,7 +51,11 @@ class Agent:
     def run_stream(self, user_message: str, history: list[dict] | None = None):
         """Run one turn, yielding events as they happen (for SSE).
 
-        Events: {type: assistant|tool_call|reply, ...}. Final event is 'reply'.
+        Events:
+          - ``{type: token, content}``       — a streamed reply text delta
+          - ``{type: tool_start, tool, args}`` — a tool is about to run
+          - ``{type: tool_result, tool, result}`` — that tool's result
+          - ``{type: reply, content}``       — the final assistant answer (terminal)
         """
         messages: list[dict] = [{"role": "system", "content": build_system_prompt(self.ctx)}]
         messages += history or []
@@ -59,13 +63,16 @@ class Agent:
         tools = openai_schemas()
 
         for _ in range(self.max_iterations):
-            resp = self.client.chat(messages, tools=tools)
-            msg = resp["choices"][0]["message"]
+            final_msg: dict | None = None
+            for ev in self.client.chat_stream(messages, tools=tools):
+                if ev["type"] == "content":
+                    yield {"type": "token", "content": ev["text"]}
+                elif ev["type"] == "final":
+                    final_msg = ev["message"]
+            msg = final_msg or {"role": "assistant", "content": ""}
             messages.append(msg)
             tool_calls = msg.get("tool_calls") or []
 
-            if msg.get("content") and tool_calls:
-                yield {"type": "assistant", "content": msg["content"]}
             if not tool_calls:
                 yield {"type": "reply", "content": msg.get("content", "")}
                 return
@@ -76,8 +83,9 @@ class Agent:
                     args = json.loads(tc["function"]["arguments"] or "{}")
                 except json.JSONDecodeError:
                     args = {}
+                yield {"type": "tool_start", "tool": name, "args": args}
                 res = dispatch(self.ctx, name, args)
-                yield {"type": "tool_call", "tool": name, "args": args, "result": res}
+                yield {"type": "tool_result", "tool": name, "args": args, "result": res}
                 messages.append({"role": "tool", "tool_call_id": tc["id"],
                                  "content": json.dumps(res)})
 
@@ -86,10 +94,15 @@ class Agent:
     def run(self, user_message: str, history: list[dict] | None = None) -> dict:
         """Run one user turn to completion (collects the stream)."""
         calls_made: list[dict] = []
-        reply = ""
+        parts: list[str] = []
+        final_reply = ""
         for ev in self.run_stream(user_message, history):
-            if ev["type"] == "tool_call":
+            kind = ev["type"]
+            if kind == "tool_result":
                 calls_made.append(ev)
-            elif ev["type"] == "reply":
-                reply = ev["content"]
+            elif kind == "token":
+                parts.append(ev["content"])
+            elif kind == "reply":
+                final_reply = ev["content"]
+        reply = "".join(parts) or final_reply
         return {"reply": reply, "tool_calls": calls_made}

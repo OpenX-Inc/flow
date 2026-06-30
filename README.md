@@ -184,10 +184,12 @@ python -m flow schedule
 ## Agentic Editing (new in 0.3)
 
 Beyond the headless pipeline, Flow ships an **in-app video agent** — an LLM that
-operates your project through 41 tools (plan scenes, generate/regenerate, reorder,
-trim, keyframes, captions, color, cast characters, narrate, batch-generate…). The
-ordered scenes *are* the timeline; ffmpeg assembles them with narration/caption
-tracks.
+operates your project through 42 tools (plan scenes, generate/regenerate, reorder,
+trim, keyframes, captions, color, cast/create characters, narrate, batch-generate…).
+The ordered scenes *are* the timeline; ffmpeg assembles them with narration/caption
+tracks. The agent **streams its reply token-by-token** over SSE (`token` events),
+with `tool_start`/`tool_result` events as each tool runs — so a UI can type the
+answer out live and show tool activity as it happens.
 
 ```bash
 # Run the agent API (default model: kimi via NVIDIA build)
