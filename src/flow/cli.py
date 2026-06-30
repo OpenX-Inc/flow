@@ -109,19 +109,31 @@ def deploy(
     model_t2v: str = typer.Option(None, help="T2V model id"),
     model_i2v: str = typer.Option(None, help="I2V model id"),
     region: str = typer.Option(None, help="Region (AWS/GCP)"),
+    modal_token_id: str = typer.Option(
+        None, help="Modal token id (else uses ambient modal auth / ~/.modal.toml)"
+    ),
+    modal_token_secret: str = typer.Option(
+        None, help="Modal token secret (passed per-invocation, not via global env)"
+    ),
     config_path: str = typer.Option("config/config.toml", help="Path to config file"),
 ) -> None:
     """Deploy the GPU backend to a provider as a named compute instance.
 
     A token alone can't generate — this deploys the open-source Wan backend into
     your account and reports the endpoint URL to register. CLI flags override the
-    deploy section of your config file.
+    deploy section of your config file. Modal credentials may be passed as args
+    (for unattended/multi-account deploys) or left to ambient modal auth.
     """
     from flow.config import load_config
     from flow.deploy import DeploySpec, available_providers, get_deployer
 
     d = load_config(config_path).deploy
     provider = provider or d.provider
+    credentials: dict = {}
+    if modal_token_id:
+        credentials["token_id"] = modal_token_id
+    if modal_token_secret:
+        credentials["token_secret"] = modal_token_secret
     spec = DeploySpec(
         name=name or d.name,
         gpu=gpu or d.gpu,
@@ -129,6 +141,7 @@ def deploy(
         model_i2v=model_i2v or d.model_i2v,
         region=region or d.region,
         scaledown_window=d.scaledown_window,
+        credentials=credentials,
     )
 
     try:

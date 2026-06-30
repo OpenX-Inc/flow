@@ -24,6 +24,11 @@ class DeploySpec:
     model_i2v: str = "Wan-AI/Wan2.2-I2V-A14B-Diffusers"
     region: str = ""
     scaledown_window: int = 300
+    # Provider credentials passed *per invocation* (e.g. Modal token_id/secret).
+    # Deployers inject these into the deploy subprocess's env only — never the
+    # ambient process env — so a shared host can deploy for many accounts
+    # concurrently without leaking tokens between deploys.
+    credentials: dict = field(default_factory=dict)
     extra: dict = field(default_factory=dict)
 
 
