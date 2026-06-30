@@ -38,8 +38,8 @@ class I2VRequest(BaseModel):
 
 class GenerationResponse(BaseModel):
     job_id: str
-    video_url: str
-    last_frame_url: str
+    video_b64: str
+    last_frame_b64: str
 
 
 @app.on_event("startup")
@@ -123,13 +123,19 @@ async def generate_i2v(req: I2VRequest):
 
 
 def _save_and_respond(output) -> GenerationResponse:
-    """Save output and return response with file URLs."""
+    """Save output and return it as base64 (matches the Modal backend contract).
+
+    Serverless/ephemeral containers can't reliably serve files back, so the
+    unified contract returns the assets inline as base64 — the ``flow.Generator``
+    consumer decodes them directly.
+    """
+    import tempfile
+
     from diffusers.utils import export_to_video
     from PIL import Image
 
     job_id = str(uuid.uuid4())
-    output_dir = Path("/tmp/flow_outputs")
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(tempfile.mkdtemp(prefix="flow_outputs_"))
 
     # Save video
     video_path = output_dir / f"{job_id}.mp4"
@@ -144,8 +150,8 @@ def _save_and_respond(output) -> GenerationResponse:
 
     return GenerationResponse(
         job_id=job_id,
-        video_url=f"/files/{job_id}.mp4",
-        last_frame_url=f"/files/{job_id}_last.png",
+        video_b64=base64.b64encode(video_path.read_bytes()).decode(),
+        last_frame_b64=base64.b64encode(last_frame_path.read_bytes()).decode(),
     )
 
 
