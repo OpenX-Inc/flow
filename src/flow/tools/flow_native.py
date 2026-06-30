@@ -8,12 +8,32 @@ off batch generation — concepts Palmier has no equivalent for.
 
 from __future__ import annotations
 
+from flow.schemas import Character
 from flow.store.frames import seconds_to_frames
 from flow.store.media import GenerationStatus, MediaAsset, MediaType
 from flow.store.models import Clip, ClipStatus
 from flow.tools import result
 from flow.tools.context import ToolContext
 from flow.tools.registry import tool
+
+
+@tool("create_character", "Add a reusable character to the project's cast for "
+      "cross-scene subject consistency. Optionally pin a reference image; cast it "
+      "into scenes with attach_character_to_scene.",
+      {"project_id": "string?", "name": "string", "description": "string",
+       "reference_image": {"type": "string", "optional": True}},
+      mutating=True)
+def create_character(ctx: ToolContext, args: dict) -> dict:
+    p = ctx.project
+    name = args["name"]
+    if name in p.characters:
+        return result.error("exists", f"character {name!r} is already in the cast",
+                            hint="pick another name or attach_character_to_scene")
+    p.characters[name] = Character(
+        description=args.get("description", ""),
+        reference_image=args.get("reference_image"),
+    )
+    return result.ok(summary=f"created character {name}", character=name)
 
 
 @tool("attach_character_to_scene", "Cast a character (from the project's reusable "
