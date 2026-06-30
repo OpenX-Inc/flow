@@ -1,6 +1,6 @@
 [project]
 name = "flow"
-version = "0.7.0"
+version = "0.8.0"
 description = "Open-source autonomous video generation pipeline. Like Google Flow, but yours."
 readme = "README.md"
 license = { text = "MIT" }
