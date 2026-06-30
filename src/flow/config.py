@@ -37,10 +37,15 @@ class TTSConfig(BaseModel):
 
 class PublishConfig(BaseModel):
     enabled: bool = False
-    platforms: list[str] = ["tiktok", "youtube", "instagram"]
+    platforms: list[str] = ["tiktok", "youtube", "instagram", "facebook"]
     tiktok_access_token: str = ""
     youtube_client_id: str = ""
     youtube_client_secret: str = ""
+    # Meta (Instagram Reels + Facebook Page) — shared Graph API auth.
+    meta_page_access_token: str = ""          # long-lived Page access token
+    facebook_page_id: str = ""                # FB Page id (Facebook publishing)
+    instagram_business_account_id: str = ""   # IG Business account id (IG publishing)
+    meta_graph_version: str = "v21.0"
 
 
 class SchedulerConfig(BaseModel):

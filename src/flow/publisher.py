@@ -19,8 +19,14 @@ class Publisher:
     def __init__(self, config: Config) -> None:
         self.config = config
 
-    def upload(self, video_path: Path, shot_list: ShotList) -> None:
-        """Upload video to configured platforms."""
+    def upload(self, video_path: Path, shot_list: ShotList,
+               video_url: str | None = None) -> None:
+        """Upload video to configured platforms.
+
+        ``video_url`` is a public URL for the video — **required** for Instagram
+        Reels (the Graph API ingests by URL, not binary) and optional for
+        Facebook (falls back to a binary upload when omitted).
+        """
         metadata = self._generate_metadata(shot_list)
 
         for platform in self.config.publish.platforms:
@@ -30,7 +36,9 @@ class Publisher:
                 elif platform == "youtube":
                     self._upload_youtube(video_path, metadata)
                 elif platform == "instagram":
-                    self._upload_instagram(video_path, metadata)
+                    self._upload_instagram(video_path, metadata, video_url)
+                elif platform == "facebook":
+                    self._upload_facebook(video_path, metadata, video_url)
                 else:
                     console.print(f"  ⚠ Unknown platform: {platform}")
             except Exception as e:
@@ -118,12 +126,108 @@ class Publisher:
         )
         console.print("  ✓ YouTube: uploaded")
 
-    def _upload_instagram(
-        self, video_path: Path, metadata: dict
-    ) -> None:
-        """Upload to Instagram Reels via Graph API.
+    def _caption(self, metadata: dict) -> str:
+        """Build a caption from metadata (title + description + hashtags)."""
+        parts = [metadata.get("title", ""), metadata.get("description", "")]
+        tags = " ".join(f"#{t}" for t in metadata.get("tags", []) if t)
+        if tags:
+            parts.append(tags)
+        return "\n\n".join(p for p in parts if p)[:2200]
 
-        Requires Facebook Business account + app review.
-        Two-step: create media container → publish.
+    def _upload_instagram(
+        self, video_path: Path, metadata: dict, video_url: str | None = None
+    ) -> None:
+        """Publish an Instagram Reel via the Meta Graph API.
+
+        Three steps: create a REELS media container (by public ``video_url``) →
+        poll until processing FINISHED → publish. Needs a long-lived Page access
+        token + the linked IG Business account id.
         """
-        console.print("  → Instagram: not yet implemented")
+        import time
+
+        p = self.config.publish
+        token = p.meta_page_access_token
+        ig_id = p.instagram_business_account_id
+        if not token or not ig_id:
+            console.print(
+                "  → Instagram: not configured "
+                "(meta_page_access_token + instagram_business_account_id)"
+            )
+            return
+        if not video_url:
+            console.print(
+                "  → Instagram: Reels require a public video_url — none provided, skipping"
+            )
+            return
+
+        base = f"https://graph.facebook.com/{p.meta_graph_version}"
+        # 1. Create the media container.
+        r = httpx.post(
+            f"{base}/{ig_id}/media",
+            data={
+                "media_type": "REELS", "video_url": video_url,
+                "caption": self._caption(metadata), "access_token": token,
+            },
+            timeout=60,
+        )
+        r.raise_for_status()
+        creation_id = r.json()["id"]
+
+        # 2. Poll until the container finishes processing.
+        for _ in range(30):
+            s = httpx.get(
+                f"{base}/{creation_id}",
+                params={"fields": "status_code", "access_token": token}, timeout=30,
+            )
+            s.raise_for_status()
+            status = s.json().get("status_code")
+            if status == "FINISHED":
+                break
+            if status == "ERROR":
+                raise RuntimeError("Instagram container processing failed")
+            time.sleep(5)
+        else:
+            raise RuntimeError("Instagram container not ready in time")
+
+        # 3. Publish.
+        pub = httpx.post(
+            f"{base}/{ig_id}/media_publish",
+            data={"creation_id": creation_id, "access_token": token}, timeout=60,
+        )
+        pub.raise_for_status()
+        console.print("  ✓ Instagram: published")
+
+    def _upload_facebook(
+        self, video_path: Path, metadata: dict, video_url: str | None = None
+    ) -> None:
+        """Publish a video to a Facebook Page via the Meta Graph API.
+
+        Uses the same Page access token as Instagram. Posts by ``file_url`` when a
+        public URL is available, otherwise uploads the local file directly.
+        """
+        p = self.config.publish
+        token = p.meta_page_access_token
+        page_id = p.facebook_page_id
+        if not token or not page_id:
+            console.print(
+                "  → Facebook: not configured (meta_page_access_token + facebook_page_id)"
+            )
+            return
+
+        url = f"https://graph.facebook.com/{p.meta_graph_version}/{page_id}/videos"
+        data = {
+            "title": metadata.get("title", "")[:255],
+            "description": metadata.get("description", "")[:1000],
+            "access_token": token,
+        }
+        if video_url:
+            data["file_url"] = video_url
+            r = httpx.post(url, data=data, timeout=120)
+        else:
+            with open(video_path, "rb") as f:
+                r = httpx.post(
+                    url, data=data,
+                    files={"source": ("video.mp4", f, "video/mp4")}, timeout=600,
+                )
+        r.raise_for_status()
+        console.print("  ✓ Facebook: published")
