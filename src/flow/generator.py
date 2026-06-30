@@ -61,6 +61,32 @@ class Generator:
 
         return clips
 
+    def generate_clip(
+        self,
+        prompt: str,
+        *,
+        scene_id: int = 0,
+        camera: str = "",
+        characters: list | None = None,
+        first_frame_path: str | None = None,
+    ) -> GeneratedClip:
+        """Generate a single scene clip (public, scene-level API).
+
+        Unlike :meth:`generate_scenes` (which renders a whole shot list
+        autonomously), this renders one scene on demand — so an interactive
+        caller can generate/regenerate scenes one at a time. Pass
+        ``first_frame_path`` (e.g. the previous clip's ``last_frame_path``) to
+        chain seamlessly via i2v conditioning; the returned clip carries its own
+        ``last_frame_path`` to feed into the next scene.
+        """
+        return self._generate_with_retry(
+            scene_id=scene_id,
+            prompt=prompt,
+            camera=camera,
+            characters=characters or [],
+            first_frame_path=first_frame_path,
+        )
+
     def _generate_with_retry(
         self,
         scene_id: int,

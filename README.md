@@ -208,6 +208,39 @@ flow mcp                         # http://127.0.0.1:8765/mcp  (Claude Code, Curs
 > Video generation requires a GPU backend (see `[gpu_backend]`); narration runs
 > free via edge-tts. The agent + MCP server are dependency-light and self-hostable.
 
+## Use it as a library (scene-level API)
+
+Beyond the autonomous `Pipeline`, the engine is callable **per scene** — so you
+can drive it interactively (generate, preview, regenerate one scene at a time)
+instead of rendering a whole shot list in one shot:
+
+```python
+from pathlib import Path
+from flow.config import load_config
+from flow.keyframes import KeyframeGenerator
+from flow.generator import Generator
+
+cfg = load_config("config/config.toml")
+kf = KeyframeGenerator(cfg)
+gen = Generator(cfg)
+
+# Pin a scene boundary as a still, then render the clip from it.
+kf.generate_keyframe("a lighthouse at dusk, opening frame", Path("kf0.png"))
+clip1 = gen.generate_clip("a lighthouse at dusk, waves rolling in", scene_id=1)
+
+# Chain the next scene seamlessly off the previous clip's last frame (i2v).
+clip2 = gen.generate_clip(
+    "the lamp room lights up at night",
+    scene_id=2,
+    first_frame_path=clip1.last_frame_path,
+)
+```
+
+`generate_clip` returns a `GeneratedClip` whose `last_frame_path` you feed into
+the next scene for continuity. `PostProduction` then assembles clips with
+narration, captions, and music. This is the same engine the autonomous pipeline
+uses — just exposed at scene granularity for interactive tools.
+
 ## Self-Hosted vs OpenX Flow (Cloud)
 
 | | Self-Hosted (this repo) | OpenX Flow (managed) |
