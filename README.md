@@ -300,7 +300,7 @@ uses — just exposed at scene granularity for interactive tools.
 - [x] Scene chaining with first/last frame conditioning
 - [x] Character bank with reference images
 - [x] TTS + subtitle integration
-- [x] Auto-publishing — TikTok + YouTube (Instagram in progress)
+- [x] Auto-publishing — TikTok, YouTube, Instagram Reels + Facebook (Meta Graph API)
 - [x] Scheduler for autonomous daily generation
 - [x] Quality validation and scene regeneration
 - [x] Agentic editing — in-app agent (kimi) + MCP server over the tool registry

@@ -61,10 +61,17 @@ voice_transcript = ""  # Transcript of the voice sample
 
 [publish]
 enabled = false
-platforms = ["tiktok", "youtube", "instagram"]
+platforms = ["tiktok", "youtube", "instagram", "facebook"]
 tiktok_access_token = ""
 youtube_client_id = ""
 youtube_client_secret = ""
+# Meta (Instagram Reels + Facebook Page) share one Graph API auth. Get a
+# long-lived Page access token + link an IG Business/Creator account to the Page.
+# Instagram Reels publish by public URL; Facebook also accepts a direct upload.
+meta_page_access_token = ""
+facebook_page_id = ""
+instagram_business_account_id = ""
+meta_graph_version = "v21.0"
 
 [scheduler]
 enabled = false
