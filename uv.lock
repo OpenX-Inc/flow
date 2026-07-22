@@ -538,7 +538,7 @@ wheels = [
 
 [[package]]
 name = "flow"
-version = "0.2.0"
+version = "0.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "edge-tts" },
