@@ -219,8 +219,13 @@ with `tool_start`/`tool_result` events as each tool runs — so a UI can type th
 answer out live and show tool activity as it happens.
 
 ```bash
-# Run the agent API (default model: kimi via NVIDIA build)
+# Run the agent API (default provider: nvidia or openrouter)
 export FLOW_NVIDIA_API_KEY="nvapi-..."
+# Or use OpenRouter:
+# export OPENROUTER_API_KEY="sk-or-v1-..."
+# export FLOW_AGENT_PROVIDER="openrouter"
+# export FLOW_AGENT_MODEL="moonshotai/kimi-k2.6"
+
 flow agent                       # POST /agent/chat (SSE), GET /agent/models, POST /agent/undo
 
 # Or expose the same tools to external coding agents over MCP
