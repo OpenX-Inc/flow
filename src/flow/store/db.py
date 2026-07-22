@@ -32,8 +32,23 @@ def _default_url() -> str:
     return f"sqlite:///{db_path}"
 
 
+def normalize_db_url(url: str) -> str:
+    """Normalize database connection URLs for synchronous SQLModel engine compatibility.
+    
+    If an async dialect URL (e.g. postgresql+asyncpg:// or postgres+asyncpg://) is provided,
+    convert it to a sync dialect (postgresql+psycopg://) to prevent connection leaks
+    and SAWarning warnings when used with synchronous Session management.
+    """
+    if url.startswith("postgresql+asyncpg://"):
+        return "postgresql+psycopg://" + url[len("postgresql+asyncpg://"):]
+    if url.startswith("postgres+asyncpg://"):
+        return "postgresql+psycopg://" + url[len("postgres+asyncpg://"):]
+    return url
+
+
 def make_engine(url: str | None = None):
     url = url or os.environ.get("FLOW_DATABASE_URL") or _default_url()
+    url = normalize_db_url(url)
     connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
     engine = create_engine(url, connect_args=connect_args)
     SQLModel.metadata.create_all(engine)
