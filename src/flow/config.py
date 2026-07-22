@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -108,9 +109,19 @@ class Config(BaseModel):
 
 
 def load_config(path: str | Path = "config/config.toml") -> Config:
-    """Load configuration from TOML file."""
+    """Load configuration from TOML file with environment variable overrides."""
     config_path = Path(path)
-    if not config_path.exists():
-        return Config()
-    data: dict[str, Any] = tomllib.loads(config_path.read_text())
-    return Config(**data)
+    data: dict[str, Any] = tomllib.loads(config_path.read_text()) if config_path.exists() else {}
+    cfg = Config(**data)
+
+    # Environment variable overrides for AgentConfig
+    if os.environ.get("FLOW_AGENT_PROVIDER"):
+        cfg.agent.provider = os.environ["FLOW_AGENT_PROVIDER"]
+    if os.environ.get("FLOW_AGENT_BASE_URL"):
+        cfg.agent.base_url = os.environ["FLOW_AGENT_BASE_URL"]
+    if os.environ.get("FLOW_AGENT_API_KEY"):
+        cfg.agent.api_key = os.environ["FLOW_AGENT_API_KEY"]
+    if os.environ.get("FLOW_AGENT_MODEL"):
+        cfg.agent.model = os.environ["FLOW_AGENT_MODEL"]
+
+    return cfg
