@@ -11,21 +11,38 @@ import os
 
 import httpx
 
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 NVIDIA_BASE = "https://integrate.api.nvidia.com/v1"
 MODEL_ALIASES = {"kimi": "moonshotai/kimi-k2.6"}
 
 
 class NvidiaClient:
     def __init__(self, api_key: str | None = None, base_url: str = NVIDIA_BASE,
-                 model: str = "kimi", timeout: float = 120.0) -> None:
-        self.api_key = api_key or os.environ.get("FLOW_NVIDIA_API_KEY", "")
+                 model: str = "kimi", timeout: float = 120.0,
+                 extra_headers: dict | None = None) -> None:
         self.base_url = base_url.rstrip("/")
+        if not api_key:
+            is_or = ("openrouter" in self.base_url or os.environ.get("OPENROUTER_API_KEY")
+                     or os.environ.get("FLOW_OPENROUTER_API_KEY"))
+            if is_or:
+                api_key = (os.environ.get("OPENROUTER_API_KEY")
+                           or os.environ.get("FLOW_OPENROUTER_API_KEY")
+                           or os.environ.get("FLOW_NVIDIA_API_KEY", ""))
+            else:
+                api_key = os.environ.get("FLOW_NVIDIA_API_KEY", "")
+        self.api_key = api_key
         self.model = MODEL_ALIASES.get(model, model)
         self.timeout = timeout
+        self.extra_headers = extra_headers or {}
+        if "openrouter" in self.base_url:
+            self.extra_headers.setdefault("HTTP-Referer", "https://openx-flow.stanl.ink")
+            self.extra_headers.setdefault("X-Title", "OpenX Flow")
 
     def _headers(self) -> dict:
-        return {"Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {self.api_key}",
+                   "Content-Type": "application/json"}
+        headers.update(self.extra_headers)
+        return headers
 
     def list_models(self) -> list[str]:
         with httpx.Client(timeout=30) as c:

@@ -112,3 +112,18 @@ def test_run_collects_stream():
     assert out["reply"] == "all set"
     assert len(out["tool_calls"]) == 1
     assert out["tool_calls"][0]["tool"] == "create_character"
+
+
+# --- OpenRouter client tests ---
+
+def test_nvidia_client_openrouter_defaults(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-test")
+    from flow.agent.nvidia import OPENROUTER_BASE, NvidiaClient
+
+    client = NvidiaClient(base_url=OPENROUTER_BASE)
+    assert client.api_key == "sk-or-v1-test"
+    headers = client._headers()
+    assert headers["Authorization"] == "Bearer sk-or-v1-test"
+    assert headers["HTTP-Referer"] == "https://openx-flow.stanl.ink"
+    assert headers["X-Title"] == "OpenX Flow"
+
