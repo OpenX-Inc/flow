@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/OpenX-Inc/flow/compare/v0.9.0...v0.9.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **db:** normalize asyncpg database URLs to sync psycopg dialect ([#44](https://github.com/OpenX-Inc/flow/issues/44)) ([28a0ec5](https://github.com/OpenX-Inc/flow/commit/28a0ec53786612a95ae5eedd43f8b177de447d3a))
+* **db:** normalize asyncpg database URLs to sync psycopg dialect ([#44](https://github.com/OpenX-Inc/flow/issues/44)) ([#45](https://github.com/OpenX-Inc/flow/issues/45)) ([b4208b0](https://github.com/OpenX-Inc/flow/commit/b4208b09260b58809a2edd02f8612ceba8ce5c0f))
+
 ## [0.9.0](https://github.com/OpenX-Inc/flow/compare/v0.8.0...v0.9.0) (2026-07-01)
 
 
