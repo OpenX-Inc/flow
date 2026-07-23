@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from flow.agent.loop import Agent
-from flow.agent.nvidia import NvidiaClient
+from flow.agent.nvidia import NVIDIA_BASE, OPENROUTER_BASE, NvidiaClient
 from flow.config import Config, load_config
 from flow.store.store import ProjectStore
 from flow.tools.context import ToolContext, dispatch
@@ -39,7 +39,10 @@ def get_config() -> Config:
 
 def _client() -> NvidiaClient:
     cfg = get_config().agent
-    return NvidiaClient(api_key=cfg.api_key or None, base_url=cfg.base_url, model=cfg.model)
+    base_url = cfg.base_url
+    if cfg.provider == "openrouter" and base_url == NVIDIA_BASE:
+        base_url = OPENROUTER_BASE
+    return NvidiaClient(api_key=cfg.api_key or None, base_url=base_url, model=cfg.model)
 
 
 def _make_agent(project_id: str) -> Agent:

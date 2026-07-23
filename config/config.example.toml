@@ -81,10 +81,11 @@ auto_generate_topics = true
 
 [agent]
 # The in-app video agent — an LLM that operates the project through 41 tools.
-# Served by the NVIDIA build API (OpenAI-compatible). Run with: `flow agent`
+# Supported providers: "nvidia" (NVIDIA Build API) or "openrouter" (OpenRouter.ai API)
+# Can also be overridden via FLOW_AGENT_PROVIDER, FLOW_AGENT_MODEL, FLOW_AGENT_BASE_URL, FLOW_AGENT_API_KEY env vars.
 provider = "nvidia"
 base_url = "https://integrate.api.nvidia.com/v1"
-api_key = ""  # or set FLOW_NVIDIA_API_KEY
+api_key = ""  # or set FLOW_NVIDIA_API_KEY / OPENROUTER_API_KEY
 model = "kimi"  # alias -> moonshotai/kimi-k2.6; see all via GET /agent/models
 max_iterations = 12  # safety cap on the tool-calling loop
 
